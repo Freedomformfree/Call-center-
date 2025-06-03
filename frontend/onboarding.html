@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to VoiceConnect Pro - Setup</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .onboarding-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            padding: 2rem;
+        }
+        
+        .onboarding-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .setup-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .progress-step.active {
+            background: #00ff88;
+            color: #000;
+            border-color: #00ff88;
+        }
+        
+        .progress-step.completed {
+            background: #00ff88;
+            color: #000;
+            border-color: #00ff88;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(0, 255, 136, 0.3);
+            z-index: 1;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #00ff88;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        
+        .setup-content {
+            margin-bottom: 2rem;
+        }
+        
+        .setup-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #00ff88;
+        }
+        
+        .setup-description {
+            color: #ccc;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .setup-form {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .setup-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn-setup {
+            padding: 0.75rem 2rem;
+            background: transparent;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-setup:hover {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .btn-setup.primary {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .btn-setup.primary:hover {
+            background: transparent;
+            color: #00ff88;
+        }
+        
+        .loading-spinner {
+            display: none;
+            margin: 2rem auto;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            display: none;
+            color: #00ff88;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-card">
+            <div class="setup-progress">
+                <div class="progress-line">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-step active" id="step1">1</div>
+                <div class="progress-step" id="step2">2</div>
+                <div class="progress-step" id="step3">3</div>
+                <div class="progress-step" id="step4">4</div>
+            </div>
+            
+            <div class="setup-content">
+                <!-- Step 1: Business Information -->
+                <div id="setupStep1" class="setup-step">
+                    <h2 class="setup-title">Business Information</h2>
+                    <p class="setup-description">Tell us about your business so we can customize your experience</p>
+                    
+                    <div class="setup-form">
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-input" id="companyName" placeholder="Your Company Name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Industry</label>
+                            <select class="form-select" id="industry">
+                                <option value="">Select Industry</option>
+                                <option value="real-estate">Real Estate</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="finance">Finance</option>
+                                <option value="retail">Retail</option>
+                                <option value="technology">Technology</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Expected Monthly Calls</label>
+                            <select class="form-select" id="callVolume">
+                                <option value="">Select Volume</option>
+                                <option value="0-1000">0 - 1,000 calls</option>
+                                <option value="1000-5000">1,000 - 5,000 calls</option>
+                                <option value="5000-10000">5,000 - 10,000 calls</option>
+                                <option value="10000+">10,000+ calls</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: SIM800C Configuration -->
+                <div id="setupStep2" class="setup-step" style="display: none;">
+                    <h2 class="setup-title">SIM800C Module Setup</h2>
+                    <p class="setup-description">Configure your SIM800C modules for optimal performance</p>
+                    
+                    <div class="setup-form">
+                        <div class="form-group">
+                            <label class="form-label">Number of SIM800C Modules</label>
+                            <select class="form-select" id="moduleCount">
+                                <option value="1">1 Module</option>
+                                <option value="2">2 Modules</option>
+                                <option value="3">3 Modules</option>
+                                <option value="4">4 Modules</option>
+                                <option value="5">5 Modules</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Primary USB Port</label>
+                            <input type="text" class="form-input" id="primaryPort" placeholder="/dev/ttyUSB0" value="/dev/ttyUSB0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Audio USB Port</label>
+                            <input type="text" class="form-input" id="audioPort" placeholder="/dev/ttyUSB1" value="/dev/ttyUSB1">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: AI Configuration -->
+                <div id="setupStep3" class="setup-step" style="display: none;">
+                    <h2 class="setup-title">AI Assistant Setup</h2>
+                    <p class="setup-description">Configure your AI assistant for your specific business needs</p>
+                    
+                    <div class="setup-form">
+                        <div class="form-group">
+                            <label class="form-label">Business Goals</label>
+                            <select class="form-select" id="businessGoals" multiple>
+                                <option value="lead-generation">Lead Generation</option>
+                                <option value="customer-support">Customer Support</option>
+                                <option value="appointment-booking">Appointment Booking</option>
+                                <option value="follow-up-calls">Follow-up Calls</option>
+                                <option value="surveys">Surveys & Feedback</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preferred Call Script Style</label>
+                            <select class="form-select" id="scriptStyle">
+                                <option value="professional">Professional & Formal</option>
+                                <option value="friendly">Friendly & Casual</option>
+                                <option value="direct">Direct & Concise</option>
+                                <option value="consultative">Consultative & Detailed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Final Setup -->
+                <div id="setupStep4" class="setup-step" style="display: none;">
+                    <h2 class="setup-title">Finalizing Setup</h2>
+                    <p class="setup-description">We're configuring your system based on your preferences</p>
+                    
+                    <div class="loading-spinner" id="loadingSpinner"></div>
+                    <div class="success-message" id="successMessage">
+                        ✓ System configured successfully!<br>
+                        ✓ SIM800C modules initialized<br>
+                        ✓ AI assistant trained<br>
+                        ✓ Dashboard ready
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setup-actions">
+                <button class="btn-setup" id="prevBtn" onclick="previousStep()" style="display: none;">Previous</button>
+                <button class="btn-setup primary" id="nextBtn" onclick="nextStep()">Next</button>
+                <button class="btn-setup primary" id="finishBtn" onclick="finishSetup()" style="display: none;">Go to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            progressFill.style.width = progressPercent + '%';
+            
+            // Update step indicators
+            for (let i = 1; i <= totalSteps; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < currentStep) {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                } else if (i === currentStep) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                }
+            }
+        }
+        
+        function showStep(step) {
+            // Hide all steps
+            for (let i = 1; i <= totalSteps; i++) {
+                document.getElementById(`setupStep${i}`).style.display = 'none';
+            }
+            
+            // Show current step
+            document.getElementById(`setupStep${step}`).style.display = 'block';
+            
+            // Update buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            
+            prevBtn.style.display = step > 1 ? 'block' : 'none';
+            nextBtn.style.display = step < totalSteps ? 'block' : 'none';
+            finishBtn.style.display = step === totalSteps ? 'block' : 'none';
+            
+            updateProgress();
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                if (validateCurrentStep()) {
+                    currentStep++;
+                    showStep(currentStep);
+                    
+                    if (currentStep === totalSteps) {
+                        startFinalSetup();
+                    }
+                }
+            }
+        }
+        
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+        
+        function validateCurrentStep() {
+            switch (currentStep) {
+                case 1:
+                    const companyName = document.getElementById('companyName').value;
+                    const industry = document.getElementById('industry').value;
+                    const callVolume = document.getElementById('callVolume').value;
+                    
+                    if (!companyName || !industry || !callVolume) {
+                        alert('Please fill in all required fields');
+                        return false;
+                    }
+                    break;
+                    
+                case 2:
+                    const moduleCount = document.getElementById('moduleCount').value;
+                    const primaryPort = document.getElementById('primaryPort').value;
+                    const audioPort = document.getElementById('audioPort').value;
+                    
+                    if (!moduleCount || !primaryPort || !audioPort) {
+                        alert('Please configure all SIM800C settings');
+                        return false;
+                    }
+                    break;
+                    
+                case 3:
+                    const businessGoals = document.getElementById('businessGoals').value;
+                    const scriptStyle = document.getElementById('scriptStyle').value;
+                    
+                    if (!businessGoals || !scriptStyle) {
+                        alert('Please select your business goals and script style');
+                        return false;
+                    }
+                    break;
+            }
+            return true;
+        }
+        
+        function startFinalSetup() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const successMessage = document.getElementById('successMessage');
+            
+            loadingSpinner.style.display = 'block';
+            
+            // Simulate setup process
+            setTimeout(() => {
+                loadingSpinner.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Save setup data to localStorage
+                const setupData = {
+                    companyName: document.getElementById('companyName').value,
+                    industry: document.getElementById('industry').value,
+                    callVolume: document.getElementById('callVolume').value,
+                    moduleCount: document.getElementById('moduleCount').value,
+                    primaryPort: document.getElementById('primaryPort').value,
+                    audioPort: document.getElementById('audioPort').value,
+                    businessGoals: document.getElementById('businessGoals').value,
+                    scriptStyle: document.getElementById('scriptStyle').value,
+                    setupCompleted: true,
+                    setupDate: new Date().toISOString()
+                };
+                
+                localStorage.setItem('voiceconnect_setup', JSON.stringify(setupData));
+            }, 3000);
+        }
+        
+        function finishSetup() {
+            // Redirect to dashboard
+            window.location.href = '/dashboard.html';
+        }
+        
+        // Initialize
+        showStep(currentStep);
+        
+        // Check if user is already set up
+        const existingSetup = localStorage.getItem('voiceconnect_setup');
+        if (existingSetup) {
+            const setupData = JSON.parse(existingSetup);
+            if (setupData.setupCompleted) {
+                window.location.href = '/dashboard.html';
+            }
+        }
+    </script>
+</body>
+</html>

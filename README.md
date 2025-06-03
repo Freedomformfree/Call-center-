@@ -1,602 +1,431 @@
-# 🎯 GeminiVoiceConnect - AI Call Center Dashboard
+# 🎯 VoiceConnect Pro - AI-Powered Call Center Platform
 
-## 📋 Описание проекта
+## 📋 Project Overview
 
-GeminiVoiceConnect - это современная система управления колл-центром с искусственным интеллектом, включающая веб-дашборд для мониторинга звонков в реальном времени и бэкенд API для управления данными.
+VoiceConnect Pro is a comprehensive AI-powered call center platform designed for businesses that need practical automation without technical complexity. The system features intelligent tool chaining, SIM800C module integration, and business-focused AI functions that actually work for real business needs.
 
-### 🌟 Основные возможности
+### 🌟 Key Features
 
-- 📊 **Дашборд в реальном времени** - мониторинг активных звонков, кампаний и системных метрик
-- 🤖 **AI-интеграция** - анализ настроений и автоматическая обработка звонков
-- 📱 **SMS-управление** - отправка и управление SMS-кампаниями
-- 👥 **Управление клиентами** - полная CRM-функциональность
-- 📈 **Аналитика** - детальные отчеты и метрики производительности
-- 🔄 **WebSocket** - обновления в реальном времени
-- 🛡️ **Безопасность** - JWT-аутентификация и авторизация
+- 🔗 **Visual Tool Chaining** - Connect AI tools in workflows with drag-and-drop interface
+- 📱 **SIM800C Integration** - Real hardware SMS/voice communication with dual USB ports
+- 🤖 **Business AI Functions** - Practical automation for customer follow-up, lead scoring, appointment scheduling
+- 📊 **Real-time Dashboard** - Live monitoring with retro minimalistic design
+- 💰 **Revenue Optimization** - Built-in subscription management and client onboarding
+- 🎨 **Modern UI** - Retro minimalistic design with smooth animations
 
-## 🏗️ Архитектура системы
+## 🏗️ System Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Database      │
-│   (React +      │◄──►│  (Node.js +     │◄──►│   (SQLite +     │
-│   TypeScript)   │    │   Express)      │    │   Prisma)       │
+│   Frontend      │    │   Core API      │    │   SIM800C       │
+│   (HTML/CSS/JS) │◄──►│   (FastAPI)     │◄──►│   Modules       │
+│   Dashboard     │    │   Business AI   │    │   Hardware      │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
         │                       │                       │
         │                       │                       │
         ▼                       ▼                       ▼
-   Port 12001              Port 3001              dev.db файл
+   Port 12000              Port 8000              USB Ports
 ```
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### 📋 Предварительные требования
+### 📋 Prerequisites
 
-Убедитесь, что у вас установлены следующие компоненты:
+- **Python 3.8+** with pip
+- **Node.js 16+** (optional, for advanced features)
+- **SIM800C modules** with dual USB connections
+- **Linux/Windows** system with USB ports
 
-- **Node.js** версии 18.0 или выше
-- **npm** версии 8.0 или выше
-- **Git** для клонирования репозитория
+### 📥 Installation
 
-### 📥 Установка
-
-#### 1. Клонирование репозитория
+#### 1. Clone Repository
 
 ```bash
-git clone https://github.com/freezingcoldice/My-project-.git
-cd My-project-
+git clone <repository-url>
+cd Call-center-
 ```
 
-#### 2. Установка зависимостей бэкенда
+#### 2. Install Python Dependencies
 
 ```bash
-cd backend
-npm install
+cd core-api
+pip install -r requirements.txt
 ```
 
-#### 3. Настройка базы данных
+#### 3. Configure API Keys
+
+Create `.env` file in project root:
 
 ```bash
-# Генерация Prisma клиента
-npx prisma generate
+# Core Configuration
+JWT_SECRET_KEY=your-super-secret-jwt-key-change-in-production
+DATABASE_URL=sqlite:///./ai_call_center.db
 
-# Применение миграций базы данных
-npx prisma migrate dev --name init
+# SMS & Communication (Optional)
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+TWILIO_PHONE_NUMBER=your_twilio_number
 
-# Заполнение базы данных тестовыми данными
-npx prisma db seed
+# AI Services (Optional)
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
+
+# Business APIs (Optional)
+STRIPE_SECRET_KEY=your_stripe_key
+SENDGRID_API_KEY=your_sendgrid_key
+
+# Telegram Bot (Optional)
+TELEGRAM_BOT_TOKEN=your_telegram_token
 ```
 
-#### 4. Настройка переменных окружения
-
-Создайте файл `.env` в папке `backend`:
+#### 4. Initialize Database
 
 ```bash
-# Создание .env файла
-cat > .env << 'EOF'
-# Database
-DATABASE_URL="file:./dev.db"
-
-# JWT Secret
-JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
-
-# Server Configuration
-PORT=3001
-NODE_ENV=development
-
-# CORS Configuration
-FRONTEND_URL="http://localhost:12001"
-
-# API Configuration
-API_VERSION="v1"
-EOF
+cd core-api
+python init_db.py
 ```
 
-#### 5. Установка зависимостей фронтенда
+#### 5. Start the System
 
 ```bash
-cd ../dashboard
-npm install
+# Start Core API
+cd core-api
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# In another terminal, start frontend server
+cd frontend
+python -m http.server 12000
 ```
 
-## 🖥️ Запуск приложения
+## 🖥️ Access the Platform
 
-### 🔧 Режим разработки
+- **Main Website:** http://localhost:12000
+- **Dashboard:** http://localhost:12000/dashboard.html
+- **API Documentation:** http://localhost:8000/docs
+- **Health Check:** http://localhost:8000/health
 
-#### 1. Запуск бэкенда
+## 🔧 SIM800C Module Setup
+
+### Hardware Configuration
+
+1. **Connect SIM800C modules** with dual USB setup:
+   - **Port 1:** AT commands + charging (e.g., `/dev/ttyUSB0`)
+   - **Port 2:** Audio via USB sound card (e.g., `/dev/ttyUSB1`)
+
+2. **Add modules via API:**
 
 ```bash
-cd backend
-npm run dev
-```
-
-Бэкенд будет доступен по адресу: `http://localhost:3001`
-
-#### 2. Запуск фронтенда (в новом терминале)
-
-```bash
-cd dashboard
-npm run dev -- --host 0.0.0.0 --port 12001
-```
-
-Фронтенд будет доступен по адресу: `http://localhost:12001`
-
-### 🚀 Продакшн режим
-
-#### 1. Сборка фронтенда
-
-```bash
-cd dashboard
-npm run build
-```
-
-#### 2. Запуск в продакшн режиме
-
-```bash
-# Бэкенд
-cd backend
-npm start
-
-# Фронтенд (статические файлы)
-cd dashboard
-npm run preview
-```
-
-### 🔄 Запуск в фоновом режиме
-
-Для запуска сервисов в фоновом режиме используйте `nohup`:
-
-```bash
-# Бэкенд в фоне
-cd backend
-nohup npm run dev > backend.log 2>&1 &
-
-# Фронтенд в фоне
-cd dashboard
-nohup npm run dev -- --host 0.0.0.0 --port 12001 > frontend.log 2>&1 &
-```
-
-## 🔐 Аутентификация
-
-### Тестовые учетные данные
-
-Для входа в систему используйте следующие данные:
-
-- **Email:** `admin@geminivoice.com`
-- **Пароль:** `demo123`
-
-### API Endpoints
-
-#### Аутентификация
-- `POST /api/auth/login` - Вход в систему
-- `POST /api/auth/register` - Регистрация
-- `POST /api/auth/refresh` - Обновление токена
-
-#### Дашборд
-- `GET /api/dashboard/stats` - Общая статистика
-- `GET /api/dashboard/calls/live` - Активные звонки
-- `GET /api/dashboard/analytics` - Аналитические данные
-
-#### Управление
-- `GET /api/campaigns` - Список кампаний
-- `GET /api/customers` - Список клиентов
-- `GET /api/calls` - История звонков
-
-## 📊 Структура проекта
-
-```
-My-project-/
-├── 📁 backend/                 # Серверная часть
-│   ├── 📁 prisma/             # Схема базы данных
-│   │   ├── schema.prisma      # Prisma схема
-│   │   ├── migrations/        # Миграции БД
-│   │   └── seed.js           # Тестовые данные
-│   ├── 📁 src/               # Исходный код бэкенда
-│   │   ├── 📁 routes/        # API маршруты
-│   │   ├── 📁 middleware/    # Промежуточное ПО
-│   │   ├── 📁 services/      # Бизнес-логика
-│   │   └── server.js         # Главный файл сервера
-│   ├── package.json          # Зависимости бэкенда
-│   └── .env                  # Переменные окружения
-│
-├── 📁 dashboard/              # Клиентская часть
-│   ├── 📁 src/               # Исходный код фронтенда
-│   │   ├── 📁 components/    # React компоненты
-│   │   ├── 📁 stores/        # Zustand хранилища
-│   │   ├── 📁 services/      # API клиенты
-│   │   ├── 📁 types/         # TypeScript типы
-│   │   └── main.tsx          # Точка входа
-│   ├── package.json          # Зависимости фронтенда
-│   ├── vite.config.ts        # Конфигурация Vite
-│   └── tsconfig.json         # Конфигурация TypeScript
-│
-└── README.md                 # Этот файл
-```
-
-## 🛠️ Технологический стек
-
-### Frontend
-- **React 18** - UI библиотека
-- **TypeScript** - Типизированный JavaScript
-- **Vite** - Сборщик и dev-сервер
-- **Zustand** - Управление состоянием
-- **Tailwind CSS** - CSS фреймворк
-- **Recharts** - Библиотека графиков
-- **Lucide React** - Иконки
-
-### Backend
-- **Node.js** - Серверная платформа
-- **Express.js** - Web фреймворк
-- **Prisma** - ORM для работы с БД
-- **SQLite** - База данных
-- **JWT** - Аутентификация
-- **bcryptjs** - Хеширование паролей
-- **Socket.IO** - WebSocket соединения
-
-## 🔧 Конфигурация
-
-### Настройка портов
-
-По умолчанию используются следующие порты:
-- **Frontend:** 12001
-- **Backend:** 3001
-
-Для изменения портов:
-
-1. **Frontend:** Измените в `package.json` или используйте флаг `--port`
-2. **Backend:** Измените переменную `PORT` в `.env` файле
-
-### Настройка CORS
-
-В файле `backend/.env` настройте:
-
-```env
-FRONTEND_URL="http://localhost:12001"
-```
-
-### Настройка базы данных
-
-Для использования другой базы данных измените `DATABASE_URL` в `.env`:
-
-```env
-# PostgreSQL
-DATABASE_URL="postgresql://user:password@localhost:5432/database"
-
-# MySQL
-DATABASE_URL="mysql://user:password@localhost:3306/database"
-```
-
-## 🧪 Тестирование
-
-### Проверка работоспособности
-
-#### 1. Проверка бэкенда
-
-```bash
-curl http://localhost:3001/api/health
-```
-
-Ожидаемый ответ:
-```json
-{
-  "status": "ok",
-  "timestamp": "2025-06-01T20:00:00.000Z",
-  "uptime": 123.456
-}
-```
-
-#### 2. Проверка аутентификации
-
-```bash
-curl -X POST http://localhost:3001/api/auth/login \
+curl -X POST "http://localhost:8000/api/v1/modules" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@geminivoice.com","password":"demo123"}'
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "module_id": "sim800c_01",
+    "at_port": "/dev/ttyUSB0",
+    "audio_port": "/dev/ttyUSB1", 
+    "gemini_api_key": "your_gemini_key_for_this_module"
+  }'
 ```
 
-#### 3. Проверка фронтенда
-
-Откройте браузер и перейдите по адресу: `http://localhost:12001`
-
-### Функциональное тестирование
-
-1. **Вход в систему** - используйте тестовые данные
-2. **Дашборд** - проверьте отображение метрик
-3. **Реальное время** - обновления каждые 5 секунд
-4. **Навигация** - переключение между разделами
-5. **API вызовы** - проверка сетевых запросов в DevTools
-
-## 🐛 Устранение неполадок
-
-### Частые проблемы
-
-#### 1. Ошибка "Port already in use"
+3. **Test SMS sending:**
 
 ```bash
-# Найти процесс, использующий порт
-lsof -i :3001
-lsof -i :12001
-
-# Завершить процесс
-kill -9 <PID>
+curl -X POST "http://localhost:8000/api/v1/modules/sim800c_01/sms" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "phone_number": "+1234567890",
+    "message": "Test message from VoiceConnect Pro"
+  }'
 ```
 
-#### 2. Ошибки базы данных
+## 🤖 Business AI Tools
+
+### Available Tools
+
+1. **Customer Follow-up** - Automatically follow up with customers via SMS/call
+2. **Lead Scoring** - Score leads based on engagement and profile
+3. **Appointment Scheduler** - Schedule appointments automatically
+4. **Quote Generator** - Generate customized quotes
+5. **Sales Reports** - Automated reporting
+6. **Customer Satisfaction** - Send surveys and analyze feedback
+
+### Tool Chaining Example
+
+Create a workflow that:
+1. **Webhook Trigger** → Receives new lead
+2. **Lead Scoring** → Scores the lead
+3. **Condition Check** → High score vs low score
+4. **Call Maker** → Calls high-value leads
+5. **SMS Sender** → Sends SMS to lower-value leads
+
+### Execute Tools via API
 
 ```bash
-# Пересоздать базу данных
-cd backend
-rm -f dev.db
-npx prisma migrate reset --force
-npx prisma db seed
+curl -X POST "http://localhost:8000/api/v1/tools/execute" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "tool_id": "customer_followup",
+    "config": {
+      "message_template": "Hello {name}! We wanted to follow up...",
+      "follow_up_delay": 24
+    },
+    "context": {
+      "customer_id": "cust_123",
+      "type": "sms"
+    }
+  }'
 ```
 
-#### 3. Ошибки зависимостей
+## 📊 Dashboard Features
+
+### Overview Section
+- Real-time call statistics
+- SMS delivery metrics
+- Revenue tracking
+- Live activity feed
+
+### AI Tools Section
+- Tool management and configuration
+- Enable/disable tools
+- Run tools manually
+- View execution history
+
+### Connections Section
+- Visual workflow builder
+- Drag-and-drop tool chaining
+- Connection management
+- Workflow validation
+
+### Analytics Section
+- Call volume charts
+- Conversion funnels
+- Revenue trends
+- Tool performance metrics
+
+### Settings Section
+- SIM800C module management
+- API key configuration
+- Gemini keys per module
+- System preferences
+
+## 🔐 Authentication
+
+### Default Login Credentials
+
+- **Email:** `admin@voiceconnectpro.com`
+- **Password:** `demo123`
+
+### API Authentication
 
 ```bash
-# Очистить кеш и переустановить
-rm -rf node_modules package-lock.json
-npm install
+# Login to get token
+curl -X POST "http://localhost:8000/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@voiceconnectpro.com",
+    "password": "demo123"
+  }'
+
+# Use token in subsequent requests
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  "http://localhost:8000/api/v1/tools"
 ```
 
-#### 4. CORS ошибки
+## 🛠️ Configuration
 
-Проверьте настройки в `backend/.env`:
-```env
-FRONTEND_URL="http://localhost:12001"
-```
+### Business Tool Configuration
 
-### Логи и отладка
+Each tool can be configured with specific parameters:
 
-#### Просмотр логов
-
-```bash
-# Логи бэкенда
-tail -f backend.log
-
-# Логи фронтенда
-tail -f frontend.log
-```
-
-#### Режим отладки
-
-```bash
-# Бэкенд с отладкой
-cd backend
-DEBUG=* npm run dev
-
-# Фронтенд с подробными логами
-cd dashboard
-npm run dev -- --debug
-```
-
-## 📈 Мониторинг и метрики
-
-### Системные метрики
-
-Дашборд отображает следующие метрики в реальном времени:
-
-- **CPU Usage** - Загрузка процессора
-- **Memory Usage** - Использование памяти
-- **GPU Usage** - Загрузка видеокарты
-- **Uptime** - Время работы системы
-
-### Бизнес-метрики
-
-- **Total Calls** - Общее количество звонков
-- **Active Campaigns** - Активные кампании
-- **Total Contacts** - Общее количество контактов
-- **Conversion Rate** - Коэффициент конверсии
-
-### WebSocket события
-
-Система использует WebSocket для обновлений в реальном времени:
-
-- `call:started` - Начало звонка
-- `call:ended` - Завершение звонка
-- `system:update` - Обновление системных метрик
-- `campaign:update` - Обновление кампании
-
-## 🔒 Безопасность
-
-### Рекомендации по безопасности
-
-1. **Измените JWT_SECRET** в продакшн среде
-2. **Используйте HTTPS** для продакшн развертывания
-3. **Настройте firewall** для ограничения доступа
-4. **Регулярно обновляйте** зависимости
-5. **Используйте переменные окружения** для секретов
-
-### Настройка HTTPS
-
-```bash
-# Генерация SSL сертификата
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
-```
-
-## 🚀 Развертывание
-
-### Docker развертывание
-
-Создайте `Dockerfile` для каждого сервиса:
-
-```dockerfile
-# Backend Dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 3001
-CMD ["npm", "start"]
-```
-
-### Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "3001:3001"
-    environment:
-      - DATABASE_URL=file:./dev.db
-      - JWT_SECRET=your-secret-key
-    
-  frontend:
-    build: ./dashboard
-    ports:
-      - "12001:12001"
-    depends_on:
-      - backend
-```
-
-### Облачное развертывание
-
-#### Heroku
-
-```bash
-# Установка Heroku CLI
-npm install -g heroku
-
-# Создание приложения
-heroku create your-app-name
-
-# Развертывание
-git push heroku main
-```
-
-#### Vercel (Frontend)
-
-```bash
-# Установка Vercel CLI
-npm install -g vercel
-
-# Развертывание
-cd dashboard
-vercel --prod
-```
-
-## 📚 API Документация
-
-### Базовый URL
-
-```
-http://localhost:3001/api
-```
-
-### Заголовки аутентификации
-
-```
-Authorization: Bearer <JWT_TOKEN>
-Content-Type: application/json
-```
-
-### Основные эндпоинты
-
-#### Аутентификация
-
-```http
-POST /auth/login
-Content-Type: application/json
-
+```python
+# Customer Follow-up Configuration
 {
-  "email": "admin@geminivoice.com",
-  "password": "demo123"
+    "message_template": "Hello {name}! We wanted to follow up on your recent inquiry.",
+    "follow_up_delay": 24,  # hours
+    "max_attempts": 3
+}
+
+# Lead Scoring Configuration  
+{
+    "scoring_factors": ["calls", "emails", "budget", "industry"],
+    "threshold_high": 80,
+    "threshold_medium": 60
 }
 ```
 
-#### Получение статистики
+### SIM800C Module Configuration
 
-```http
-GET /dashboard/stats
-Authorization: Bearer <token>
-```
-
-#### Активные звонки
-
-```http
-GET /dashboard/calls/live?limit=10
-Authorization: Bearer <token>
-```
-
-### Формат ответов
-
-Все API ответы имеют следующий формат:
-
-```json
+```python
+# Module Settings
 {
-  "success": true,
-  "data": {
-    // Данные ответа
-  },
-  "message": "Success message",
-  "timestamp": "2025-06-01T20:00:00.000Z"
+    "module_id": "sim800c_01",
+    "at_port": "/dev/ttyUSB0",      # AT commands + charging
+    "audio_port": "/dev/ttyUSB1",   # Audio via USB sound card
+    "gemini_api_key": "module_specific_key",
+    "timeout": 30,
+    "retries": 3,
+    "error_handling": "retry"
 }
 ```
 
-## 🤝 Вклад в проект
+## 📈 Subscription Management
 
-### Как внести вклад
+### Client Onboarding Process
 
-1. **Fork** репозитория
-2. **Создайте** ветку для новой функции (`git checkout -b feature/amazing-feature`)
-3. **Зафиксируйте** изменения (`git commit -m 'Add amazing feature'`)
-4. **Отправьте** в ветку (`git push origin feature/amazing-feature`)
-5. **Откройте** Pull Request
+1. **Client signs up** with company information
+2. **30-minute consultation** to understand needs
+3. **Automatic tool configuration** based on business type
+4. **Ready-to-use setup** with pre-connected workflows
 
-### Стандарты кода
+### Subscription Tiers
 
-- Используйте **TypeScript** для типизации
-- Следуйте **ESLint** правилам
-- Пишите **тесты** для новой функциональности
-- Документируйте **API изменения**
+- **Starter ($99/month):** Up to 1,000 calls, 2 modules, basic analytics
+- **Professional ($299/month):** Up to 5,000 calls, 5 modules, AI automation
+- **Enterprise ($799/month):** Unlimited calls/modules, custom integrations
 
-## 📄 Лицензия
+## 🔧 Troubleshooting
 
-Этот проект распространяется под лицензией MIT. См. файл `LICENSE` для подробностей.
+### Common Issues
 
-## 📞 Поддержка
+#### 1. SIM800C Module Not Connecting
 
-Если у вас возникли вопросы или проблемы:
+```bash
+# Check USB ports
+ls -la /dev/ttyUSB*
 
-1. **Проверьте** раздел "Устранение неполадок"
-2. **Создайте** Issue в GitHub
-3. **Свяжитесь** с командой разработки
+# Test AT commands manually
+screen /dev/ttyUSB0 115200
+AT
+# Should respond with OK
+```
 
-## 🎯 Дорожная карта
+#### 2. API Authentication Errors
 
-### Планируемые функции
+```bash
+# Verify token is valid
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  "http://localhost:8000/api/v1/tools"
+```
 
-- [ ] **Мобильное приложение** - React Native версия
-- [ ] **Расширенная аналитика** - ML-модели для прогнозирования
-- [ ] **Интеграции** - CRM системы и внешние API
-- [ ] **Масштабирование** - Микросервисная архитектура
-- [ ] **Тестирование** - Автоматизированные тесты
+#### 3. Tool Execution Failures
 
-### Версии
+Check logs:
+```bash
+tail -f core-api/server.log
+```
 
-- **v1.0.0** - Базовая функциональность ✅
-- **v1.1.0** - WebSocket интеграция ✅
-- **v1.2.0** - Улучшенная аналитика (в разработке)
-- **v2.0.0** - Мобильное приложение (планируется)
+#### 4. Frontend Connection Issues
+
+Ensure both servers are running:
+- Core API: http://localhost:8000
+- Frontend: http://localhost:12000
+
+### Performance Optimization
+
+1. **Database optimization:** Use PostgreSQL for production
+2. **Redis caching:** Enable Redis for better performance
+3. **Load balancing:** Use nginx for multiple instances
+4. **Monitoring:** Enable Prometheus metrics at `/metrics`
+
+## 📚 API Documentation
+
+### Core Endpoints
+
+- `GET /api/v1/tools` - List available business tools
+- `POST /api/v1/tools/execute` - Execute a business tool
+- `GET /api/v1/modules` - List SIM800C modules
+- `POST /api/v1/modules` - Add new SIM800C module
+- `POST /api/v1/modules/{id}/sms` - Send SMS via module
+- `POST /api/v1/modules/{id}/call` - Make call via module
+
+### Webhook Integration
+
+```bash
+# Setup webhook for new leads
+curl -X POST "http://localhost:8000/api/v1/webhooks" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-domain.com/webhook/leads",
+    "events": ["lead.created", "lead.updated"],
+    "workflow_id": "lead_processing_workflow"
+  }'
+```
+
+## 🚀 Production Deployment
+
+### Docker Deployment
+
+```bash
+# Build and run with Docker
+docker-compose up -d
+```
+
+### Environment Variables
+
+```bash
+# Production settings
+NODE_ENV=production
+DATABASE_URL=postgresql://user:pass@localhost:5432/voiceconnect
+REDIS_URL=redis://localhost:6379
+WEBHOOK_BASE_URL=https://your-domain.com
+```
+
+### Security Considerations
+
+1. **Change default passwords**
+2. **Use HTTPS in production**
+3. **Configure firewall rules**
+4. **Regular security updates**
+5. **API rate limiting**
+
+## 📞 Support
+
+### Getting Help
+
+1. **Documentation:** Check this README and API docs
+2. **Issues:** Create GitHub issues for bugs
+3. **Community:** Join our Discord server
+4. **Enterprise:** Contact sales for enterprise support
+
+### Contributing
+
+1. Fork the repository
+2. Create feature branch
+3. Make changes with tests
+4. Submit pull request
+
+## 📄 License
+
+This project is licensed under the MIT License. See LICENSE file for details.
+
+## 🎯 Roadmap
+
+### Upcoming Features
+
+- [ ] **Mobile app** - React Native dashboard
+- [ ] **Advanced analytics** - ML-powered insights  
+- [ ] **CRM integrations** - Salesforce, HubSpot connectors
+- [ ] **Voice AI** - Real-time conversation analysis
+- [ ] **Multi-language** - International support
+- [ ] **White-label** - Custom branding options
 
 ---
 
-## 🏆 Статус проекта
+## 🏆 Project Status
 
-**Статус:** ✅ Готов к использованию  
-**Версия:** v1.1.0  
-**Последнее обновление:** 01.06.2025  
+**Status:** ✅ Production Ready  
+**Version:** v2.0.0  
+**Last Updated:** June 2025  
 
-### Проверенная функциональность
+### Verified Functionality
 
-- ✅ Аутентификация и авторизация
-- ✅ Дашборд в реальном времени
-- ✅ API интеграция
-- ✅ WebSocket соединения
-- ✅ База данных и миграции
-- ✅ Системные метрики
-- ✅ Responsive дизайн
+- ✅ SIM800C hardware integration
+- ✅ Business AI tool execution
+- ✅ Visual workflow builder
+- ✅ Real-time dashboard
+- ✅ API authentication
+- ✅ Subscription management
+- ✅ Tool chaining system
 
-**Система полностью функциональна и готова к использованию!** 🚀
+**The platform is fully functional and ready for business use!** 🚀

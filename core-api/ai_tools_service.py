@@ -105,6 +105,12 @@ class AIToolsService:
                 "description": "Manage Salesforce CRM data",
                 "scopes": ["api"],
                 "setup_required": ["client_id", "client_secret", "username", "password", "security_token"]
+            },
+            "gemini_chat": {
+                "name": "Gemini AI Chat",
+                "description": "Intelligent AI assistant for tool management and automation",
+                "scopes": ["chat", "tool_management", "workflow_creation"],
+                "setup_required": ["api_key"]
             }
         }
     
@@ -258,6 +264,8 @@ class AIToolsService:
                     return await self._execute_hubspot_action(config.config, action, parameters)
                 elif tool_name == "salesforce":
                     return await self._execute_salesforce_action(config.config, action, parameters)
+                elif tool_name == "gemini_chat":
+                    return await self._execute_gemini_chat_action(config.config, action, parameters)
                 else:
                     return {
                         "success": False,
@@ -502,7 +510,7 @@ class AIToolsService:
     async def _execute_click_action(self, config: Dict[str, str], action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute Click API actions."""
         try:
-            from .click_payment_service import ClickPaymentService, ClickSubscriptionManager
+            from click_payment_service import ClickPaymentService, ClickSubscriptionManager
             from datetime import datetime
             from uuid import UUID
             
@@ -623,6 +631,92 @@ class AIToolsService:
             }
         
         return {"success": False, "error": f"Unknown Salesforce action: {action}"}
+
+    async def _execute_gemini_chat_action(self, config: Dict[str, str], action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute Gemini Chat actions."""
+        try:
+            from gemini_chat_service import gemini_chat_service
+            
+            if action == "start_session":
+                context = parameters.get("context", "ai_tools_manager")
+                user_id = UUID(parameters.get("user_id"))
+                
+                session_id = await gemini_chat_service.start_chat_session(user_id, context)
+                
+                return {
+                    "success": True,
+                    "message": "Chat session started successfully",
+                    "action": "start_session",
+                    "details": {
+                        "session_id": session_id,
+                        "context": context
+                    }
+                }
+            
+            elif action == "send_message":
+                required = ["session_id", "message", "user_id"]
+                missing = [field for field in required if field not in parameters]
+                if missing:
+                    return {"success": False, "error": f"Missing fields: {', '.join(missing)}"}
+                
+                session_id = parameters["session_id"]
+                message = parameters["message"]
+                user_id = UUID(parameters["user_id"])
+                
+                response = await gemini_chat_service.send_message(session_id, message, user_id)
+                
+                return {
+                    "success": True,
+                    "message": "Message sent successfully",
+                    "action": "send_message",
+                    "details": {
+                        "response": response.text,
+                        "tool_actions": [action.__dict__ for action in response.tool_actions],
+                        "confidence": response.confidence,
+                        "processing_time": response.processing_time
+                    }
+                }
+            
+            elif action == "get_history":
+                session_id = parameters.get("session_id")
+                if not session_id:
+                    return {"success": False, "error": "Missing session_id"}
+                
+                history = await gemini_chat_service.get_session_history(session_id)
+                
+                return {
+                    "success": True,
+                    "message": "History retrieved successfully",
+                    "action": "get_history",
+                    "details": {
+                        "history": history,
+                        "message_count": len(history)
+                    }
+                }
+            
+            elif action == "clear_session":
+                session_id = parameters.get("session_id")
+                if not session_id:
+                    return {"success": False, "error": "Missing session_id"}
+                
+                success = await gemini_chat_service.clear_session(session_id)
+                
+                return {
+                    "success": success,
+                    "message": "Session cleared successfully" if success else "Failed to clear session",
+                    "action": "clear_session",
+                    "details": {"session_id": session_id}
+                }
+            
+            else:
+                return {"success": False, "error": f"Unknown Gemini Chat action: {action}"}
+                
+        except Exception as e:
+            logger.error("Gemini chat action failed", error=str(e), action=action)
+            return {
+                "success": False,
+                "error": f"Gemini chat action failed: {str(e)}"
+            }
 
 
 # Dependency injection

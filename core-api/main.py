@@ -255,19 +255,39 @@ app.include_router(call_webhook_router)
 app.include_router(gsm_status_router)
 app.include_router(get_telegram_router(), prefix="/api/v1")
 
+# Include secure authentication router
+from secure_auth_api import secure_auth_router
+app.include_router(secure_auth_router)
+
 # Include Click payment router
 from click_endpoints import router as click_router
 app.include_router(click_router)
 
+# Include Gemini chat router
+from gemini_chat_api import router as gemini_chat_router
+app.include_router(gemini_chat_router)
+
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Redirect root to beautiful site
+# Serve frontend at root
 @app.get("/")
-async def redirect_to_beautiful_site():
-    """Redirect root URL to beautiful site"""
+async def serve_frontend():
+    """Serve the main frontend application"""
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/static/beautiful-index.html")
+    return RedirectResponse(url="/static/index.html")
+
+@app.get("/dashboard")
+async def serve_dashboard():
+    """Serve the dashboard application with AI tools and Gemini chat"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/static/dashboard.html")
+
+@app.get("/login")
+async def serve_secure_login():
+    """Serve the secure login page with SMS verification"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/static/secure-login.html")
 
 # Business Tools API Endpoints
 @app.post("/api/v1/tools/execute")

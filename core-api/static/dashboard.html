@@ -20,6 +20,7 @@
             </div>
             <nav class="dashboard-nav">
                 <a href="#overview" class="nav-item active" data-section="overview">Overview</a>
+                <a href="#voice-call" class="nav-item" data-section="voice-call">📞 Talk with AI</a>
                 <a href="#tools" class="nav-item" data-section="tools">AI Tools</a>
                 <a href="#gemini-chat" class="nav-item" data-section="gemini-chat">Gemini Chat</a>
                 <a href="#connections" class="nav-item" data-section="connections">Connections</a>
@@ -102,6 +103,96 @@
                         <h3>AI Tool Executions</h3>
                         <div class="activity-list" id="toolExecutions">
                             <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Voice Call Section -->
+        <section id="voice-call" class="dashboard-section">
+            <div class="section-header">
+                <h1>📞 Talk with AI Assistant</h1>
+                <div class="quick-actions">
+                    <button class="btn-primary" id="request-phone">Request Phone Number</button>
+                    <button class="btn-secondary" onclick="refreshSession()">Refresh Session</button>
+                </div>
+            </div>
+
+            <div class="voice-call-container">
+                <!-- Phone Number Assignment -->
+                <div class="phone-number-card">
+                    <div class="card-header">
+                        <h2>📱 Company Phone Number</h2>
+                        <div class="status" id="call-status">Ready</div>
+                    </div>
+                    <div class="phone-display">
+                        <div class="phone-number" id="company-phone-display">Not assigned</div>
+                        <p>Call this number to start your 30-minute AI consultation</p>
+                    </div>
+                </div>
+
+                <!-- Session Timer -->
+                <div class="session-timer-card">
+                    <div class="timer-header">
+                        <h3>⏱️ Session Timer</h3>
+                    </div>
+                    <div class="timer-display">
+                        <div class="timer-value" id="session-timer">30:00</div>
+                        <p>Remaining consultation time</p>
+                    </div>
+                </div>
+
+                <!-- Call Controls -->
+                <div class="call-controls">
+                    <button class="btn-primary" id="start-consultation" disabled>Request Phone Number First</button>
+                    <button class="btn-danger" id="end-consultation" style="display: none;">End Consultation</button>
+                </div>
+
+                <!-- Active Call Interface (hidden by default) -->
+                <div id="active-call-interface" style="display: none;">
+                    <div class="active-call-card">
+                        <h3>🔴 Consultation Active</h3>
+                        <p>Your AI consultation is now active. Call the number above to begin.</p>
+                        <div class="call-features">
+                            <div class="feature">✅ AI Business Analysis</div>
+                            <div class="feature">✅ Tool Recommendations</div>
+                            <div class="feature">✅ Automation Planning</div>
+                            <div class="feature">✅ Subscription Offer</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Features -->
+                <div class="call-features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI Business Consultant</h3>
+                        <p>Talk with our AI consultant specialized in business automation</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⏱️</div>
+                        <h3>30-Minute Sessions</h3>
+                        <p>Free consultation to analyze your business and recommend tools</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <h3>Custom Recommendations</h3>
+                        <p>Get personalized AI tool recommendations for your business type</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Business Analysis</h3>
+                        <p>Detailed analysis of your business processes and automation opportunities</p>
+                    </div>
+                </div>
+
+                <!-- Recent Calls -->
+                <div class="recent-calls-section">
+                    <h3>📋 Recent Consultations</h3>
+                    <div class="calls-list" id="recent-calls-list">
+                        <div class="no-calls">
+                            <p>No recent consultations. Start your first consultation above!</p>
                         </div>
                     </div>
                 </div>
@@ -422,6 +513,7 @@
     <script src="workflow-builder.js"></script>
     <script src="click-payment.js"></script>
     <script src="gemini-chat.js"></script>
+    <script src="voice-call.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

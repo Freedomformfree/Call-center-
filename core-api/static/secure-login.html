@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 VoiceConnect Pro - Secure Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .sms-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px dashed #cbd5e1;
+        }
+        
+        .sms-section.active {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+        
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        
+        .step.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .step.completed {
+            background: #10b981;
+            color: white;
+        }
+        
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .auth-toggle a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+        
+        .countdown {
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .phone-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .phone-input-group select {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .phone-input-group input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>🤖 VoiceConnect Pro</h1>
+            <p>Secure Login with SMS Verification</p>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step active" id="step1">1</div>
+            <div class="step" id="step2">2</div>
+            <div class="step" id="step3">3</div>
+        </div>
+        
+        <div id="alertContainer"></div>
+        
+        <!-- Step 1: Check User -->
+        <div id="checkUserStep" class="auth-form">
+            <div class="form-group">
+                <label for="emailOrPhone">Email or Phone Number</label>
+                <input type="text" id="emailOrPhone" placeholder="Enter email or phone number" required>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="checkUser()">Continue</button>
+        </div>
+        
+        <!-- Step 2: SMS Verification -->
+        <div id="smsStep" class="auth-form" style="display: none;">
+            <div class="sms-section">
+                <h3>📱 SMS Verification</h3>
+                <p>We'll send a verification code to your phone number</p>
+                
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <div class="phone-input-group">
+                        <select id="countryCode">
+                            <option value="+998">🇺🇿 +998</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+7">🇷🇺 +7</option>
+                        </select>
+                        <input type="tel" id="phoneNumber" placeholder="901234567" required>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="sendSMSCode()" id="sendCodeBtn">
+                    Send Verification Code
+                </button>
+                
+                <div id="codeSection" style="display: none; margin-top: 20px;">
+                    <div class="form-group">
+                        <label for="smsCode">Verification Code</label>
+                        <input type="text" id="smsCode" placeholder="Enter 6-digit code" maxlength="6" required>
+                    </div>
+                    <div class="countdown" id="countdown"></div>
+                    <button type="button" class="btn btn-secondary" onclick="resendCode()" id="resendBtn" disabled>
+                        Resend Code
+                    </button>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-primary" onclick="verifyCode()" id="verifyBtn" style="display: none;">
+                Verify Code
+            </button>
+        </div>
+        
+        <!-- Step 3: Login/Register -->
+        <div id="authStep" class="auth-form" style="display: none;">
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h3>🔐 Login</h3>
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerForm" style="display: none;">
+                <h3>📝 Create Account</h3>
+                <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="register()">Create Account</button>
+            </div>
+        </div>
+        
+        <div class="auth-toggle">
+            <p>Need help? <a href="mailto:support@voiceconnectpro.com">Contact Support</a></p>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let userExists = false;
+        let verifiedPhone = '';
+        let verifiedCode = '';
+        let countdownTimer = null;
+        
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+        
+        function updateStep(step) {
+            // Update step indicator
+            for (let i = 1; i <= 3; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                if (i < step) {
+                    stepEl.className = 'step completed';
+                } else if (i === step) {
+                    stepEl.className = 'step active';
+                } else {
+                    stepEl.className = 'step';
+                }
+            }
+            
+            // Show/hide forms
+            document.getElementById('checkUserStep').style.display = step === 1 ? 'flex' : 'none';
+            document.getElementById('smsStep').style.display = step === 2 ? 'flex' : 'none';
+            document.getElementById('authStep').style.display = step === 3 ? 'flex' : 'none';
+            
+            currentStep = step;
+        }
+        
+        async function checkUser() {
+            const emailOrPhone = document.getElementById('emailOrPhone').value.trim();
+            
+            if (!emailOrPhone) {
+                showAlert('Please enter email or phone number', 'error');
+                return;
+            }
+            
+            try {
+                const isEmail = emailOrPhone.includes('@');
+                const requestData = isEmail ? 
+                    { email: emailOrPhone } : 
+                    { phone_number: emailOrPhone };
+                
+                const response = await fetch('/api/v1/secure-auth/check-user-exists', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    userExists = data.exists;
+                    
+                    if (userExists && data.user) {
+                        // Pre-fill phone number if user exists
+                        const phone = data.user.phone_number;
+                        if (phone.startsWith('+')) {
+                            const countryCode = phone.substring(0, 4);
+                            const number = phone.substring(4);
+                            document.getElementById('countryCode').value = countryCode;
+                            document.getElementById('phoneNumber').value = number;
+                        }
+                        
+                        // Pre-fill email for login
+                        document.getElementById('loginEmail').value = data.user.email;
+                        
+                        showAlert(`Welcome back, ${data.user.first_name}! Please verify your phone number.`, 'success');
+                    } else {
+                        showAlert('New user detected. Please verify your phone number to create an account.', 'info');
+                        
+                        // Pre-fill email for registration if provided
+                        if (isEmail) {
+                            document.getElementById('registerEmail').value = emailOrPhone;
+                        }
+                    }
+                    
+                    updateStep(2);
+                } else {
+                    showAlert('Failed to check user. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error checking user:', error);
+                showAlert('Network error. Please check your connection.', 'error');
+            }
+        }
+        
+        async function sendSMSCode() {
+            const countryCode = document.getElementById('countryCode').value;
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            if (!phoneNumber) {
+                showAlert('Please enter phone number', 'error');
+                return;
+            }
+            
+            const fullPhone = countryCode + phoneNumber;
+            
+            try {
+                const response = await fetch('/api/v1/secure-auth/send-verification-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: fullPhone,
+                        purpose: userExists ? 'login' : 'registration'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    verifiedPhone = fullPhone;
+                    showAlert('Verification code sent! Check your phone.', 'success');
+                    
+                    // Show code input section
+                    document.getElementById('codeSection').style.display = 'block';
+                    document.getElementById('verifyBtn').style.display = 'block';
+                    document.getElementById('sendCodeBtn').disabled = true;
+                    
+                    // Start countdown
+                    startCountdown(60);
+                } else {
+                    showAlert(data.detail || 'Failed to send verification code', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending SMS:', error);
+                showAlert('Failed to send verification code. Please try again.', 'error');
+            }
+        }
+        
+        function startCountdown(seconds) {
+            const countdownEl = document.getElementById('countdown');
+            const resendBtn = document.getElementById('resendBtn');
+            
+            let remaining = seconds;
+            
+            countdownTimer = setInterval(() => {
+                countdownEl.textContent = `Resend available in ${remaining}s`;
+                remaining--;
+                
+                if (remaining < 0) {
+                    clearInterval(countdownTimer);
+                    countdownEl.textContent = '';
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend Code';
+                }
+            }, 1000);
+        }
+        
+        async function resendCode() {
+            document.getElementById('resendBtn').disabled = true;
+            document.getElementById('resendBtn').textContent = 'Sending...';
+            await sendSMSCode();
+        }
+        
+        async function verifyCode() {
+            const smsCode = document.getElementById('smsCode').value.trim();
+            
+            if (!smsCode || smsCode.length !== 6) {
+                showAlert('Please enter 6-digit verification code', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/secure-auth/verify-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: verifiedPhone,
+                        code: smsCode,
+                        purpose: userExists ? 'login' : 'registration'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.verified) {
+                    verifiedCode = smsCode;
+                    showAlert('Phone number verified successfully!', 'success');
+                    
+                    // Show appropriate form
+                    if (userExists) {
+                        document.getElementById('loginForm').style.display = 'block';
+                        document.getElementById('registerForm').style.display = 'none';
+                    } else {
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('registerForm').style.display = 'block';
+                        
+                        // Pre-fill phone number for registration
+                        document.getElementById('registerPhone').value = verifiedPhone;
+                    }
+                    
+                    updateStep(3);
+                } else {
+                    showAlert(data.message || 'Invalid verification code', 'error');
+                }
+            } catch (error) {
+                console.error('Error verifying code:', error);
+                showAlert('Failed to verify code. Please try again.', 'error');
+            }
+        }
+        
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/secure-auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        phone_number: verifiedPhone,
+                        sms_code: verifiedCode
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Store token
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('user_email', data.email);
+                    
+                    showAlert('Login successful! Redirecting...', 'success');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error logging in:', error);
+                showAlert('Login failed. Please try again.', 'error');
+            }
+        }
+        
+        async function register() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!firstName || !lastName || !email || !password || !confirmPassword) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match', 'error');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showAlert('Password must be at least 8 characters long', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/secure-auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        first_name: firstName,
+                        last_name: lastName,
+                        phone_number: verifiedPhone,
+                        sms_code: verifiedCode
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Store token
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('user_email', data.email);
+                    
+                    showAlert('Account created successfully! Redirecting...', 'success');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error registering:', error);
+                showAlert('Registration failed. Please try again.', 'error');
+            }
+        }
+        
+        // Auto-format phone number input
+        document.getElementById('phoneNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+        });
+        
+        // Auto-format SMS code input
+        document.getElementById('smsCode').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+            
+            if (value.length === 6) {
+                document.getElementById('verifyBtn').focus();
+            }
+        });
+        
+        // Check if user is already logged in
+        if (localStorage.getItem('access_token')) {
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>

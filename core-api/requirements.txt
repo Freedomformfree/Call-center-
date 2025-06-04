@@ -88,3 +88,5 @@ mkdocs-swagger-ui-tag==0.6.8
 pyserial==3.5
 pyaudio==0.2.14
 aiosmtplib==3.0.2
+google-generativeai==0.3.2
+soundfile==0.12.1

@@ -5,6 +5,7 @@ Supports multiple VoIP providers and real phone call functionality
 
 import os
 import asyncio
+import json
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 import structlog
@@ -382,22 +383,52 @@ class RealCallService:
     def _get_company_consultation_prompt(self) -> str:
         """Get the company consultation AI prompt"""
         return """
-        Вы - консультант AI Call Center. Ваша задача:
+        You are an AI Business Automation Consultant for our Call Center service. Your mission is to help clients automate their business processes.
+
+        CONSULTATION FLOW (30 minutes):
         
-        1. Поприветствовать клиента и узнать о его бизнесе
-        2. Выяснить, какие процессы он хочет автоматизировать
-        3. Предложить подходящие решения на основе наших сервисов:
-           - Автоматический прием звонков
-           - Обработка заказов
-           - Консультации клиентов
-           - Запись на услуги
-           - Техническая поддержка
+        1. WELCOME & DISCOVERY (5 minutes)
+           - Greet warmly and introduce our AI automation services
+           - Ask about their business type (hotel, restaurant, retail, healthcare, beauty salon, etc.)
+           - Understand their current challenges and pain points
+           
+        2. BUSINESS ANALYSIS (10 minutes)
+           - Identify specific processes they want to automate
+           - Ask about their customer interaction volume
+           - Understand their current tools and systems
+           - Discover time-consuming manual tasks
+           
+        3. SOLUTION PRESENTATION (10 minutes)
+           Based on their business type, present relevant automation tools:
+           
+           HOTELS: Room booking, guest communication, check-in/out automation, review management
+           RESTAURANTS: Order taking, delivery coordination, reservation management, customer feedback
+           RETAIL: Inventory alerts, customer follow-up, order processing, sales analytics
+           HEALTHCARE: Appointment scheduling, patient reminders, prescription notifications
+           BEAUTY SALONS: Booking management, client reminders, service upselling
+           EDUCATION: Course enrollment, student communication, payment reminders
+           REAL ESTATE: Lead qualification, property inquiries, viewing scheduling
+           CONSULTING: Client onboarding, meeting scheduling, follow-up automation
+           
+        4. CUSTOMIZATION (3 minutes)
+           - Explain how tools can be customized for their specific needs
+           - Mention integration with their existing systems
+           - Highlight time and cost savings
+           
+        5. SUBSCRIPTION OFFER (2 minutes)
+           - Present our $20/month AI Assistant plan
+           - Explain included features based on their needs
+           - Offer to create a custom automation workflow
+           
+        IMPORTANT GUIDELINES:
+        - Be consultative, not pushy
+        - Focus on solving their specific problems
+        - Use examples relevant to their business type
+        - Collect detailed information about their needs
+        - End with clear next steps if they're interested
+        - Always respect the 30-minute time limit
         
-        4. Если клиент заинтересован, предложить оформить месячную подписку
-        5. Подтвердить выбранные функции и отправить их на сервер
-        6. Через 30 минут вежливо завершить разговор
-        
-        Будьте дружелюбны, профессиональны и помогайте клиенту найти лучшее решение.
+        Remember: Your goal is to understand their business deeply and recommend the most valuable automation tools for their specific situation.
         """
     
     def _get_user_custom_prompt(self, user_id: str, session: Session) -> str:
@@ -453,6 +484,93 @@ class RealCallService:
         except Exception as e:
             logger.error("Error updating call status", error=str(e))
             return {'success': False, 'error': str(e)}
+    
+    async def process_consultation_completion(
+        self, 
+        call_id: str, 
+        conversation_transcript: str,
+        call_duration_minutes: int
+    ) -> Dict[str, Any]:
+        """
+        Process completed consultation call and trigger analysis.
+        
+        Args:
+            call_id: Call ID
+            conversation_transcript: Full conversation transcript
+            call_duration_minutes: Duration of the call in minutes
+            
+        Returns:
+            Analysis results and subscription offer
+        """
+        try:
+            with Session(get_session().bind) as session:
+                # Get call details
+                call = session.get(Call, call_id)
+                if not call:
+                    return {'success': False, 'error': 'Call not found'}
+                
+                # Check if this was a consultation call
+                if call.call_type != 'consultation':
+                    return {'success': False, 'error': 'Not a consultation call'}
+                
+                # Get user from temporary phone assignment
+                from models import TemporaryPhoneAssignment
+                from sqlmodel import select
+                
+                assignment = session.exec(
+                    select(TemporaryPhoneAssignment).where(
+                        TemporaryPhoneAssignment.phone_number == call.to_number,
+                        TemporaryPhoneAssignment.is_active == True
+                    )
+                ).first()
+                
+                if not assignment:
+                    return {'success': False, 'error': 'No active phone assignment found'}
+                
+                user_id = str(assignment.user_id)
+                
+                # Import and use consultation analysis service
+                from consultation_analysis_service import get_consultation_analysis_service
+                analysis_service = get_consultation_analysis_service()
+                
+                if not analysis_service:
+                    logger.error("Consultation analysis service not available")
+                    return {'success': False, 'error': 'Analysis service unavailable'}
+                
+                # Analyze the consultation
+                analysis_result = await analysis_service.analyze_consultation(
+                    user_id=user_id,
+                    conversation_transcript=conversation_transcript,
+                    call_duration_minutes=call_duration_minutes
+                )
+                
+                if analysis_result['success']:
+                    # Update call with analysis results
+                    call.conversation_summary = analysis_result['analysis']['summary']
+                    call.ai_analysis_data = json.dumps(analysis_result['analysis'])
+                    session.commit()
+                    
+                    logger.info("Consultation analysis completed", 
+                               call_id=call_id, 
+                               user_id=user_id,
+                               business_type=analysis_result['analysis']['business_type']['name'])
+                    
+                    return {
+                        'success': True,
+                        'analysis': analysis_result['analysis'],
+                        'subscription_offer': {
+                            'monthly_price': analysis_result['analysis']['pricing']['monthly_price'],
+                            'recommended_tools': analysis_result['analysis']['recommended_tools'],
+                            'business_type': analysis_result['analysis']['business_type']['name']
+                        }
+                    }
+                else:
+                    logger.error("Consultation analysis failed", error=analysis_result.get('error'))
+                    return analysis_result
+                
+        except Exception as e:
+            logger.error("Error processing consultation completion", error=str(e))
+            return {'success': False, 'error': str(e)}
 
 # Global call service instance
 real_call_service = RealCallService()
@@ -469,3 +587,13 @@ async def handle_incoming_call(from_number: str, to_number: str) -> Dict[str, An
 async def update_call_status(call_id: str, status: str, details: Dict[str, Any] = None) -> Dict[str, Any]:
     """Update call status"""
     return await real_call_service.update_call_status(call_id, status, details)
+
+async def process_consultation_completion(
+    call_id: str, 
+    conversation_transcript: str, 
+    call_duration_minutes: int
+) -> Dict[str, Any]:
+    """Process consultation completion"""
+    return await real_call_service.process_consultation_completion(
+        call_id, conversation_transcript, call_duration_minutes
+    )

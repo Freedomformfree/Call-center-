@@ -24,7 +24,7 @@ facebook-sdk>=3.1.0
 yfinance>=0.2.18
 alpha-vantage>=2.3.1
 python-binance>=1.0.19
-stripe>=7.8.0
+# stripe>=7.8.0  # Replaced with Click API for Uzbekistan market
 requests>=2.31.0
 
 # Data Processing

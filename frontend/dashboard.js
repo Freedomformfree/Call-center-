@@ -532,7 +532,7 @@ function loadApiKeys() {
     const apiKeys = [
         { service: 'SIM800C Local GSM', status: 'configured', masked: '/dev/ttyUSB0' },
         { service: 'OpenAI', status: 'configured', masked: '••••••••••••5678' },
-        { service: 'Stripe', status: 'not_configured', masked: 'Not set' },
+        { service: 'Click', status: 'not_configured', masked: 'Not set' },
         { service: 'SendGrid', status: 'configured', masked: '••••••••••••9012' }
     ];
 

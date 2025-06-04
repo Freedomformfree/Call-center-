@@ -29,8 +29,9 @@ class APIKeysConfig:
         self.salesforce_client_secret: Optional[str] = os.getenv('SALESFORCE_CLIENT_SECRET')
         
         # Payment Processing
-        self.stripe_secret_key: Optional[str] = os.getenv('STRIPE_SECRET_KEY')
-        self.stripe_publishable_key: Optional[str] = os.getenv('STRIPE_PUBLISHABLE_KEY')
+        self.click_service_id: Optional[str] = os.getenv('CLICK_SERVICE_ID')
+        self.click_secret_key: Optional[str] = os.getenv('CLICK_SECRET_KEY')
+        self.click_merchant_id: Optional[str] = os.getenv('CLICK_MERCHANT_ID')
         self.paypal_client_id: Optional[str] = os.getenv('PAYPAL_CLIENT_ID')
         self.paypal_client_secret: Optional[str] = os.getenv('PAYPAL_CLIENT_SECRET')
         

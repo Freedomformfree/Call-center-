@@ -518,7 +518,7 @@ class Payment(UUIDMixin, TimestampMixin, table=True):
     
     # Payment Details
     payment_method: str = Field(max_length=50, nullable=False)  # card, bank_transfer, etc.
-    payment_processor: str = Field(max_length=50, nullable=False)  # stripe, paypal, etc.
+    payment_processor: str = Field(max_length=50, nullable=False)  # click, paypal, etc.
     transaction_id: str = Field(max_length=255, nullable=False, unique=True)
     
     # Billing Information

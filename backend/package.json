@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.1",
-    "@types/stripe": "^8.0.416",
+
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
@@ -44,7 +44,7 @@
     "nodemailer": "^6.9.7",
     "redis": "^4.6.11",
     "socket.io": "^4.7.4",
-    "stripe": "^18.2.0",
+
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",

@@ -48,10 +48,11 @@
 
 body {
     font-family: var(--font-mono);
-    background: var(--bg-dark);
-    color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
+    scroll-behavior: smooth;
+    background: var(--bg-dark);
+    color: var(--text-primary);
 }
 
 /* Scrollbar Styling */
@@ -291,6 +292,9 @@ body {
     background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
     position: relative;
     overflow: hidden;
+    /* PC Optimization */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .hero::before {
@@ -996,5 +1000,224 @@ body {
     .services-grid,
     .features-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Desktop Optimizations for PC */
+@media (min-width: 1200px) {
+    .hero-container {
+        max-width: 1400px;
+        gap: var(--spacing-3xl);
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        line-height: 1.1;
+    }
+    
+    .hero-description {
+        font-size: 1.25rem;
+        max-width: 90%;
+    }
+    
+    .terminal-window {
+        min-height: 400px;
+    }
+    
+    .services-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-xl);
+    }
+    
+    .features-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-xl);
+    }
+    
+    .pricing-card {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .contact-content {
+        gap: var(--spacing-3xl);
+    }
+}
+
+@media (min-width: 1600px) {
+    .hero-container {
+        max-width: 1600px;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+    }
+    
+    .hero-description {
+        font-size: 1.375rem;
+    }
+    
+    .container {
+        max-width: 1600px;
+    }
+}
+
+/* Performance Optimizations */
+.hero::before,
+.terminal-window,
+.service-card,
+.feature-card,
+.pricing-card {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Smooth animations for better PC experience */
+.service-card,
+.feature-card,
+.pricing-card {
+    transition: all var(--transition-normal);
+}
+
+.service-card:hover,
+.feature-card:hover {
+    transform: translateY(-8px) scale(1.02);
+}
+
+.pricing-card:hover {
+    transform: translateY(-12px) scale(1.03);
+}
+
+/* Accessibility and Keyboard Navigation */
+.keyboard-navigation *:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.navbar.scrolled {
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error states */
+.error {
+    border-color: var(--error-color);
+    background-color: rgba(255, 68, 68, 0.1);
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.success-message {
+    color: var(--success-color);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+/* Improved form validation */
+.form-group {
+    position: relative;
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+    border-color: var(--error-color);
+}
+
+.form-group input:valid:not(:placeholder-shown) {
+    border-color: var(--success-color);
+}
+
+/* Better button states */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn:focus {
+    box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.3);
+}
+
+/* Improved dropdown */
+.language-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 4px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border-color);
+}
+
+.status-indicator.online {
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.status-indicator.offline {
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+
+.status-indicator::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Responsive improvements for very large screens */
+@media (min-width: 2000px) {
+    .hero-title {
+        font-size: 5rem;
+    }
+    
+    .hero-description {
+        font-size: 1.5rem;
+    }
+    
+    .container {
+        max-width: 1800px;
     }
 }

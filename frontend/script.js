@@ -7,12 +7,22 @@ let currentUser = null;
 let currentLanguage = 'en';
 let originalTexts = new Map();
 
-// DOM Content Loaded
+// DOM Content Loaded with error handling
 document.addEventListener('DOMContentLoaded', function() {
-    initializeAnimations();
-    initializeScrollEffects();
-    initializeTypingEffect();
-    initializeTerminalAnimation();
+    try {
+        // Performance optimization: Use requestAnimationFrame for smooth animations
+        requestAnimationFrame(() => {
+            initializeAnimations();
+            initializeScrollEffects();
+            initializeTypingEffect();
+            initializeTerminalAnimation();
+            initializePerformanceOptimizations();
+        });
+    } catch (error) {
+        console.error('Error initializing website:', error);
+        // Fallback: basic functionality without animations
+        initializeBasicFunctionality();
+    }
 });
 
 // Initialize animations
@@ -1082,3 +1092,150 @@ function updateStatusIndicators(status) {
         }
     });
 }
+
+// Performance Optimizations for PC
+function initializePerformanceOptimizations() {
+    // Lazy loading for images
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        observer.unobserve(img);
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+
+    // Preload critical resources
+    preloadCriticalResources();
+    
+    // Optimize scroll performance
+    optimizeScrollPerformance();
+    
+    // Initialize keyboard navigation
+    initializeKeyboardNavigation();
+}
+
+function preloadCriticalResources() {
+    // Preload fonts
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'preload';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap';
+    fontLink.as = 'style';
+    document.head.appendChild(fontLink);
+}
+
+function optimizeScrollPerformance() {
+    let ticking = false;
+    
+    function updateScrollEffects() {
+        // Throttled scroll effects
+        const scrollY = window.pageYOffset;
+        
+        // Update navigation background
+        const nav = document.querySelector('.navbar');
+        if (nav) {
+            if (scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        }
+        
+        ticking = false;
+    }
+    
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(updateScrollEffects);
+            ticking = true;
+        }
+    }
+    
+    window.addEventListener('scroll', requestTick, { passive: true });
+}
+
+function initializeKeyboardNavigation() {
+    // Enhanced keyboard navigation for accessibility
+    document.addEventListener('keydown', function(e) {
+        // ESC key to close modals/dropdowns
+        if (e.key === 'Escape') {
+            closeAllDropdowns();
+        }
+        
+        // Tab navigation improvements
+        if (e.key === 'Tab') {
+            document.body.classList.add('keyboard-navigation');
+        }
+    });
+    
+    // Remove keyboard navigation class on mouse use
+    document.addEventListener('mousedown', function() {
+        document.body.classList.remove('keyboard-navigation');
+    });
+}
+
+function closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('.language-dropdown');
+    dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('active');
+    });
+}
+
+// Basic functionality fallback
+function initializeBasicFunctionality() {
+    console.log('Running in basic mode - animations disabled');
+    
+    // Basic smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+    
+    // Basic form handling
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactSubmit);
+    }
+}
+
+// Error boundary for critical functions
+function safeExecute(fn, fallback = null) {
+    try {
+        return fn();
+    } catch (error) {
+        console.error('Safe execution failed:', error);
+        if (fallback) {
+            return fallback();
+        }
+    }
+}
+
+// Performance monitoring
+function monitorPerformance() {
+    if ('performance' in window) {
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                console.log('Page load time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+            }, 0);
+        });
+    }
+}
+
+// Initialize performance monitoring
+monitorPerformance();

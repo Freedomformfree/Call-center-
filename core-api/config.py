@@ -73,8 +73,6 @@ class CoreAPIConfig(BaseSettings):
     paypal_client_secret: Optional[str] = Field(default=None, description="PayPal client secret")
     
     # Communication Services
-    twilio_account_sid: Optional[str] = Field(default=None, description="Twilio account SID")
-    twilio_auth_token: Optional[str] = Field(default=None, description="Twilio auth token")
     sendgrid_api_key: Optional[str] = Field(default=None, description="SendGrid API key")
     
     # Integration Services

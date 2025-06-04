@@ -35,7 +35,7 @@ croniter==2.0.1
 schedule==1.2.0
 apscheduler==3.10.4
 boto3==1.34.0
-twilio==8.11.0
+
 sendgrid==6.11.0
 mailgun==0.1.1
 slack-sdk==3.26.1
@@ -86,4 +86,5 @@ mkdocs==1.5.3
 mkdocs-material==9.4.14
 mkdocs-swagger-ui-tag==0.6.8
 pyserial==3.5
+pyaudio==0.2.14
 aiosmtplib==3.0.2

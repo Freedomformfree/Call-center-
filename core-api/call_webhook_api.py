@@ -33,12 +33,13 @@ async def handle_call_webhook(call_id: str, request: Request):
         status = None
         details = {}
         
-        # Twilio webhook format
-        if 'CallStatus' in webhook_data:
-            status = webhook_data['CallStatus'].lower()
+        # SIM800C local GSM webhook format
+        if 'sim800c_status' in webhook_data:
+            status = webhook_data['sim800c_status'].lower()
             details = {
-                'duration': webhook_data.get('CallDuration'),
-                'reason': webhook_data.get('CallStatus')
+                'duration': webhook_data.get('duration'),
+                'modem_port': webhook_data.get('modem_port'),
+                'reason': webhook_data.get('sim800c_status')
             }
         
         # Vonage webhook format
@@ -65,7 +66,7 @@ async def handle_call_webhook(call_id: str, request: Request):
 
 @call_webhook_router.post("/webhook/{call_id}/status")
 async def handle_call_status_webhook(call_id: str, request: Request):
-    """Handle call status webhook (Twilio specific)"""
+    """Handle call status webhook (SIM800C local GSM specific)"""
     return await handle_call_webhook(call_id, request)
 
 @call_webhook_router.post("/webhook/{call_id}/events")
@@ -90,10 +91,10 @@ async def handle_incoming_call_webhook(request: Request):
         from_number = None
         to_number = None
         
-        # Twilio format
-        if 'From' in webhook_data and 'To' in webhook_data:
-            from_number = webhook_data['From']
-            to_number = webhook_data['To']
+        # SIM800C local GSM format
+        if 'from_number' in webhook_data and 'to_number' in webhook_data:
+            from_number = webhook_data['from_number']
+            to_number = webhook_data['to_number']
         
         # Vonage format
         elif 'from' in webhook_data and 'to' in webhook_data:
@@ -124,7 +125,7 @@ def generate_call_response(call_info: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate appropriate call response based on provider
     
-    For Twilio: Return TwiML
+    For SIM800C: Return AT command response
     For Vonage: Return NCCO (Nexmo Call Control Object)
     """
     

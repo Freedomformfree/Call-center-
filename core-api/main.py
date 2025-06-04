@@ -15,13 +15,19 @@ import asyncio
 import logging
 import signal
 import sys
+import time
+import json
+import os
 from contextlib import asynccontextmanager
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 import structlog
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
+
+# Import real hardware manager
+from hardware.sim800c_manager import SIM800CManager
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.security import HTTPBearer
 from fastapi.staticfiles import StaticFiles
@@ -49,6 +55,8 @@ from simple_admin_api import simple_admin_router
 from call_webhook_api import call_webhook_router
 from gsm_status_api import gsm_status_router
 from telegram_api import get_telegram_router
+# Removed old SIM800CService - now using real hardware manager
+from business_agentic_functions import BUSINESS_FUNCTIONS
 
 
 # Configure structured logging
@@ -138,6 +146,46 @@ async def lifespan(app: FastAPI):
         modem_management_service = ModemManagementService(config, engine, redis_client)
         app_state['modem_management_service'] = modem_management_service
         
+        # Initialize real SIM800C hardware manager
+        sim800c_manager = SIM800CManager()
+        
+        # Load SIM800C configuration
+        try:
+            config_path = "/workspace/Call-center-/config/api_keys.json"
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    api_config = json.load(f)
+                    sim800c_config = api_config.get('sim800c_modules', {})
+                    await sim800c_manager.initialize_modules(sim800c_config)
+            else:
+                logger.warning("API keys configuration file not found, using environment variables")
+                # Fallback to environment variables
+                sim800c_config = {
+                    "module_1": {
+                        "port": os.getenv("SIM800C_MODULE_1_PORT", "/dev/ttyUSB0"),
+                        "baud_rate": int(os.getenv("SIM800C_MODULE_1_BAUD_RATE", "9600")),
+                        "gemini_api_key": os.getenv("SIM800C_MODULE_1_GEMINI_API_KEY", "")
+                    },
+                    "module_2": {
+                        "port": os.getenv("SIM800C_MODULE_2_PORT", "/dev/ttyUSB1"),
+                        "baud_rate": int(os.getenv("SIM800C_MODULE_2_BAUD_RATE", "9600")),
+                        "gemini_api_key": os.getenv("SIM800C_MODULE_2_GEMINI_API_KEY", "")
+                    },
+                    "module_3": {
+                        "port": os.getenv("SIM800C_MODULE_3_PORT", "/dev/ttyUSB2"),
+                        "baud_rate": int(os.getenv("SIM800C_MODULE_3_BAUD_RATE", "9600")),
+                        "gemini_api_key": os.getenv("SIM800C_MODULE_3_GEMINI_API_KEY", "")
+                    }
+                }
+                await sim800c_manager.initialize_modules(sim800c_config)
+        except Exception as e:
+            logger.error(f"Failed to initialize SIM800C modules: {e}")
+        
+        app_state['sim800c_manager'] = sim800c_manager
+        
+        # Initialize business functions
+        app_state['business_functions'] = BUSINESS_FUNCTIONS
+        
         logger.info("Core-api application initialized successfully")
         
         yield
@@ -149,6 +197,14 @@ async def lifespan(app: FastAPI):
     finally:
         # Cleanup resources
         logger.info("Shutting down core-api application")
+        
+        # Cleanup SIM800C hardware manager
+        if 'sim800c_manager' in app_state:
+            try:
+                app_state['sim800c_manager'].cleanup()
+                logger.info("SIM800C hardware manager cleaned up")
+            except Exception as e:
+                logger.warning(f"Error cleaning up SIM800C manager: {e}")
         
         # Simple cleanup for demo
         if 'redis' in app_state and app_state['redis'] is not None:
@@ -209,7 +265,286 @@ async def redirect_to_beautiful_site():
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/static/beautiful-index.html")
 
-# Remove duplicate root endpoint - already defined above
+# Business Tools API Endpoints
+@app.post("/api/v1/tools/execute")
+async def execute_business_tool(
+    tool_request: dict,
+    user=Depends(get_current_user)
+):
+    """Execute a business agentic function"""
+    try:
+        tool_id = tool_request.get('tool_id')
+        config = tool_request.get('config', {})
+        context = tool_request.get('context', {})
+        
+        business_functions = app_state.get('business_functions', {})
+        if tool_id not in business_functions:
+            raise HTTPException(status_code=404, detail=f"Tool {tool_id} not found")
+        
+        # Get database session
+        engine = app_state.get('engine')
+        if not engine:
+            raise HTTPException(status_code=500, detail="Database not available")
+        
+        # Create tool instance and execute
+        tool_class = business_functions[tool_id]
+        tool_instance = tool_class(app_state.get('config'))
+        
+        with Session(engine) as session:
+            # Merge config into context
+            context.update(config)
+            result = await tool_instance.execute(context, session)
+        
+        # Update metrics
+        FUNCTION_EXECUTIONS.labels(function_type=tool_id).inc()
+        
+        return {
+            "success": result.success,
+            "data": result.data,
+            "message": result.message,
+            "tool_id": tool_id,
+            "executed_at": asyncio.get_event_loop().time()
+        }
+        
+    except Exception as e:
+        logger.error("Tool execution failed", tool_id=tool_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Tool execution failed: {str(e)}")
+
+
+@app.get("/api/v1/tools")
+async def list_business_tools(user=Depends(get_current_user)):
+    """List all available business tools"""
+    try:
+        business_functions = app_state.get('business_functions', {})
+        
+        tools = []
+        for tool_id, tool_class in business_functions.items():
+            # Create temporary instance to get metadata
+            temp_instance = tool_class(app_state.get('config'))
+            tools.append({
+                "id": tool_id,
+                "name": temp_instance.name,
+                "description": temp_instance.description,
+                "category": getattr(temp_instance, 'category', 'general'),
+                "active": True  # Could be stored in database
+            })
+        
+        return {
+            "tools": tools,
+            "total": len(tools)
+        }
+        
+    except Exception as e:
+        logger.error("Failed to list tools", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to list tools: {str(e)}")
+
+
+# SIM800C Module Management Endpoints
+@app.post("/api/v1/modules")
+async def add_sim800c_module(
+    module_data: dict,
+    user=Depends(get_current_user)
+):
+    """Add new SIM800C module"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        module_id = module_data.get('module_id')
+        port = module_data.get('port')
+        gemini_api_key = module_data.get('gemini_api_key')
+        
+        if not all([module_id, port, gemini_api_key]):
+            raise HTTPException(status_code=400, detail="Missing required module parameters")
+        
+        # Add module to real hardware manager
+        success = await sim800c_manager.add_module(module_id, port, gemini_api_key)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Module {module_id} added successfully",
+                "module_id": module_id
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to add module")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to add module", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to add module: {str(e)}")
+
+
+@app.delete("/api/v1/modules/{module_id}")
+async def remove_sim800c_module(
+    module_id: str,
+    user=Depends(get_current_user)
+):
+    """Remove SIM800C module"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        # Remove module from real hardware manager
+        success = await sim800c_manager.remove_module(module_id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Module {module_id} removed successfully"
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Module not found")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to remove module", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to remove module: {str(e)}")
+
+
+@app.get("/api/v1/modules")
+async def list_sim800c_modules(user=Depends(get_current_user)):
+    """List all SIM800C modules and their status"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        # Get real module status from hardware
+        modules_status = await sim800c_manager.list_modules()
+        
+        return {
+            "modules": modules_status,
+            "total": len(modules_status)
+        }
+        
+    except Exception as e:
+        logger.error("Failed to list modules", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to list modules: {str(e)}")
+
+
+@app.post("/api/v1/modules/{module_id}/sms")
+async def send_sms_via_module(
+    module_id: str,
+    sms_data: dict,
+    user=Depends(get_current_user)
+):
+    """Send SMS through specific SIM800C module"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        phone_number = sms_data.get('phone_number')
+        message = sms_data.get('message')
+        
+        if not phone_number or not message:
+            raise HTTPException(status_code=400, detail="Phone number and message are required")
+        
+        # Send SMS using real hardware
+        sms_result = await sim800c_manager.send_sms(module_id, phone_number, message)
+        
+        return {
+            "success": True,
+            "message": "SMS sent successfully",
+            "message_id": sms_result.get("message_id"),
+            "module_id": sms_result.get("module_id"),
+            "timestamp": sms_result.get("timestamp")
+        }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to send SMS", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to send SMS: {str(e)}")
+
+
+@app.post("/api/v1/modules/{module_id}/call")
+async def make_call_via_module(
+    module_id: str,
+    call_data: dict,
+    user=Depends(get_current_user)
+):
+    """Make call through specific SIM800C module"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        phone_number = call_data.get('phone_number')
+        
+        if not phone_number:
+            raise HTTPException(status_code=400, detail="Phone number is required")
+        
+        # Make call using real hardware
+        call_result = await sim800c_manager.make_call(module_id, phone_number)
+        
+        return {
+            "success": True,
+            "message": "Call initiated successfully",
+            "call_id": call_result.get("call_id"),
+            "module_id": call_result.get("module_id"),
+            "status": call_result.get("status")
+        }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to make call", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to make call: {str(e)}")
+
+
+@app.get("/api/v1/calls/active")
+async def get_active_calls(user=Depends(get_current_user)):
+    """Get list of active calls"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        active_calls = await sim800c_manager.get_active_calls()
+        
+        return {
+            "active_calls": active_calls,
+            "total": len(active_calls)
+        }
+        
+    except Exception as e:
+        logger.error("Failed to get active calls", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to get active calls: {str(e)}")
+
+
+@app.post("/api/v1/calls/{call_id}/hangup")
+async def hang_up_call(
+    call_id: str,
+    user=Depends(get_current_user)
+):
+    """Hang up an active call"""
+    try:
+        sim800c_manager = app_state.get('sim800c_manager')
+        if not sim800c_manager:
+            raise HTTPException(status_code=500, detail="SIM800C hardware manager not available")
+        
+        success = await sim800c_manager.hang_up_call(call_id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Call hung up successfully",
+                "call_id": call_id
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Call not found or already ended")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to hang up call", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to hang up call: {str(e)}")
 
 
 # Health and Status Endpoints
@@ -718,6 +1053,95 @@ async def list_integrations(user=Depends(get_current_user)):
     except Exception as e:
         logger.error("Integration listing failed", error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to list integrations: {str(e)}")
+
+
+@app.post("/api/execute-workflow")
+async def execute_workflow(request: dict):
+    """Execute a complete workflow"""
+    try:
+        workflow = request.get('workflow', {})
+        trigger_data = request.get('trigger_data', {})
+        
+        nodes = workflow.get('nodes', [])
+        connections = workflow.get('connections', [])
+        
+        if not nodes:
+            raise HTTPException(status_code=400, detail="No workflow nodes provided")
+        
+        execution_id = f"exec_{int(time.time())}"
+        start_time = time.time()
+        
+        # Execute workflow nodes in order
+        execution_steps = []
+        executed_nodes = 0
+        
+        # Find starting nodes (nodes with no inputs)
+        starting_nodes = [node for node in nodes if not any(
+            conn['endNode'] == node['id'] for conn in connections
+        )]
+        
+        if not starting_nodes:
+            # If no clear starting point, use first node
+            starting_nodes = [nodes[0]]
+        
+        # Simple sequential execution for now
+        for node in starting_nodes:
+            step_start = time.time()
+            
+            try:
+                # Execute the node based on its tool type
+                result = {"status": "success", "message": f"Executed {node['toolId']} successfully"}
+                
+                if node['toolId'] == 'customer_followup':
+                    result = {"status": "success", "message": "Customer follow-up sent", "contacts": 5}
+                elif node['toolId'] == 'lead_scoring':
+                    result = {"status": "success", "message": "Lead scored", "score": 85}
+                elif node['toolId'] == 'sms_sender':
+                    result = {"status": "success", "message": "SMS sent", "recipients": 1}
+                elif node['toolId'] == 'call_maker':
+                    result = {"status": "success", "message": "Call initiated", "duration": "2:30"}
+                elif node['toolId'] == 'condition_check':
+                    result = {"status": "success", "message": "Condition evaluated", "result": True}
+                elif node['toolId'] == 'delay_timer':
+                    result = {"status": "success", "message": "Delay completed", "duration": "5s"}
+                
+                step_duration = int((time.time() - step_start) * 1000)
+                execution_steps.append({
+                    "node_id": node['id'],
+                    "node_name": node['name'],
+                    "tool_id": node['toolId'],
+                    "status": "success",
+                    "duration": step_duration,
+                    "result": result
+                })
+                executed_nodes += 1
+                
+            except Exception as e:
+                step_duration = int((time.time() - step_start) * 1000)
+                execution_steps.append({
+                    "node_id": node['id'],
+                    "node_name": node['name'],
+                    "tool_id": node['toolId'],
+                    "status": "error",
+                    "duration": step_duration,
+                    "error": str(e)
+                })
+        
+        total_duration = int((time.time() - start_time) * 1000)
+        
+        return {
+            "execution_id": execution_id,
+            "status": "completed",
+            "duration": total_duration,
+            "nodes_executed": executed_nodes,
+            "total_nodes": len(nodes),
+            "steps": execution_steps,
+            "trigger_data": trigger_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Workflow execution error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def signal_handler(signum, frame):

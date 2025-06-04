@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="description" content="VoiceConnect Pro - Advanced AI-powered call center solutions with SIM800C integration, multi-language support, and real-time analytics.">
-    <meta name="keywords" content="call center, AI automation, SIM800C, GSM modules, business automation, multi-language">
+    <meta name="description" content="VoiceConnect Pro - Minimalistic AI-powered call center solutions with elegant paper coffee aesthetic.">
+    <meta name="keywords" content="call center, AI automation, minimalistic design, business automation, coffee aesthetic">
     <meta name="author" content="VoiceConnect Pro">
     <meta name="robots" content="index, follow">
     
@@ -14,320 +14,323 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     
-    <title>VoiceConnect Pro - AI Call Center Solutions</title>
+    <title>☕ VoiceConnect Pro - Minimalistic AI Call Center</title>
     
-    <!-- Critical CSS -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- Coffee Paper Theme -->
+    <link rel="stylesheet" href="coffee-paper-theme.css">
     
     <!-- Fonts with display=swap for better performance -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Helvetica+Neue:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📞</text></svg>">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <span class="logo-text">VoiceConnect</span>
-                <span class="logo-accent">Pro</span>
-            </div>
-            <div class="nav-menu">
-                <a href="#home" class="nav-link">Home</a>
-                <a href="#services" class="nav-link">Services</a>
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#pricing" class="nav-link">Pricing</a>
-                <a href="#contact" class="nav-link">Contact</a>
-            </div>
-            <div class="nav-auth">
-                <div class="language-selector">
-                    <button class="btn-language" onclick="toggleLanguageMenu()">
-                        <span id="currentLanguage">🌐 EN</span>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                    <div id="languageMenu" class="language-menu">
-                        <div class="language-option" onclick="translatePage('en')">🇺🇸 English</div>
-                        <div class="language-option" onclick="translatePage('ru')">🇷🇺 Русский</div>
-                        <div class="language-option" onclick="translatePage('uz')">🇺🇿 O'zbek</div>
-                        <div class="language-option" onclick="translatePage('es')">🇪🇸 Español</div>
-                        <div class="language-option" onclick="translatePage('fr')">🇫🇷 Français</div>
-                        <div class="language-option" onclick="translatePage('de')">🇩🇪 Deutsch</div>
-                        <div class="language-option" onclick="translatePage('zh')">🇨🇳 中文</div>
-                        <div class="language-option" onclick="translatePage('ar')">🇸🇦 العربية</div>
-                        <div class="language-option" onclick="translatePage('hi')">🇮🇳 हिन्दी</div>
-                        <div class="language-option" onclick="translatePage('ja')">🇯🇵 日本語</div>
-                    </div>
-                </div>
-                <button class="btn-secondary" onclick="openModal('loginModal')">Login</button>
-                <button class="btn-primary" onclick="openModal('signupModal')">Sign Up</button>
-            </div>
-        </div>
+    <!-- Coffee Navigation -->
+    <nav class="coffee-nav">
+        <ul class="coffee-nav-list">
+            <li class="coffee-nav-item">
+                <a href="#home" class="coffee-nav-link active">Home</a>
+            </li>
+            <li class="coffee-nav-item">
+                <a href="#services" class="coffee-nav-link">Services</a>
+            </li>
+            <li class="coffee-nav-item">
+                <a href="#features" class="coffee-nav-link">Features</a>
+            </li>
+            <li class="coffee-nav-item">
+                <a href="#pricing" class="coffee-nav-link">Pricing</a>
+            </li>
+            <li class="coffee-nav-item">
+                <a href="/login" class="coffee-nav-link">Login</a>
+            </li>
+        </ul>
     </nav>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    <span class="typing-text">AI-Powered Call Center</span>
-                    <br>
-                    <span class="hero-subtitle">That Actually Works</span>
-                </h1>
-                <p class="hero-description">
-                    Transform your business with intelligent call automation, 
-                    real-time analytics, and seamless customer engagement.
+    <!-- Main Paper Container -->
+    <div class="paper-container">
+        <!-- Coffee Header -->
+        <header class="coffee-header">
+            <h1 class="coffee-title">VoiceConnect Pro</h1>
+            <p class="coffee-subtitle">Minimalistic AI Call Center Solutions</p>
+        </header>
+
+        <!-- Hero Section -->
+        <section id="home" class="coffee-m-8">
+            <div class="coffee-text-center">
+                <h2 class="coffee-font-serif">AI-Powered Call Center That Actually Works</h2>
+                <p class="coffee-m-6">
+                    Transform your business with intelligent call automation, real-time analytics, 
+                    and seamless customer engagement. Our minimalistic approach focuses on what matters most.
                 </p>
-                <div class="hero-buttons">
-                    <button class="btn-primary btn-large" onclick="openModal('signupModal')">
-                        Start Free Trial
-                    </button>
-                    <button class="btn-secondary btn-large" onclick="scrollToSection('services')">
-                        Learn More
-                    </button>
+                <div class="coffee-m-6">
+                    <a href="/login" class="coffee-btn coffee-btn-primary">
+                        <span>Start Free Trial</span>
+                    </a>
+                    <a href="#services" class="coffee-btn coffee-m-4">
+                        <span>Learn More</span>
+                    </a>
                 </div>
             </div>
-            <div class="hero-visual">
-                <div class="terminal-window">
-                    <div class="terminal-header">
-                        <div class="terminal-buttons">
-                            <span class="btn-close"></span>
-                            <span class="btn-minimize"></span>
-                            <span class="btn-maximize"></span>
-                        </div>
-                        <span class="terminal-title">voice-connect-pro</span>
-                    </div>
-                    <div class="terminal-body">
-                        <div class="terminal-line">
-                            <span class="prompt">$</span>
-                            <span class="command typing-command">./start-call-center</span>
-                        </div>
-                        <div class="terminal-output">
-                            <div class="output-line">✓ AI Engine initialized</div>
-                            <div class="output-line">✓ SIM800C modules connected</div>
-                            <div class="output-line">✓ Analytics dashboard ready</div>
-                            <div class="output-line success">✓ System ready for calls</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Services Section -->
-    <section id="services" class="services">
-        <div class="container">
-            <h2 class="section-title">Our Services</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">📞</div>
-                    <h3>Automated Calling</h3>
-                    <p>AI-powered outbound calling with natural conversation flow and intelligent lead qualification.</p>
-                    <ul class="service-features">
-                        <li>Smart dialing algorithms</li>
-                        <li>Voice recognition</li>
-                        <li>Call recording & analysis</li>
+        <!-- Services Section -->
+        <section id="services" class="coffee-m-8">
+            <h2 class="coffee-text-center coffee-m-6">Our Services</h2>
+            <div class="coffee-grid coffee-grid-2">
+                <div class="coffee-card">
+                    <div class="coffee-card-header">
+                        <h3 class="coffee-card-title">📞 Automated Calling</h3>
+                        <p class="coffee-card-subtitle">AI-powered conversations</p>
+                    </div>
+                    <p>Intelligent outbound calling with natural conversation flow and smart lead qualification.</p>
+                    <ul class="coffee-font-mono coffee-text-sm">
+                        <li>• Smart dialing algorithms</li>
+                        <li>• Voice recognition</li>
+                        <li>• Call recording & analysis</li>
                     </ul>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">💬</div>
-                    <h3>SMS Campaigns</h3>
-                    <p>Multi-channel SMS marketing with SIM800C integration for reliable message delivery.</p>
-                    <ul class="service-features">
-                        <li>Bulk SMS sending</li>
-                        <li>Delivery tracking</li>
-                        <li>Response automation</li>
+                
+                <div class="coffee-card">
+                    <div class="coffee-card-header">
+                        <h3 class="coffee-card-title">💬 SMS Campaigns</h3>
+                        <p class="coffee-card-subtitle">Multi-channel messaging</p>
+                    </div>
+                    <p>Professional SMS marketing with local SIM800C integration for reliable delivery.</p>
+                    <ul class="coffee-font-mono coffee-text-sm">
+                        <li>• Bulk SMS sending</li>
+                        <li>• Delivery tracking</li>
+                        <li>• Response automation</li>
                     </ul>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">📊</div>
-                    <h3>Real-time Analytics</h3>
-                    <p>Comprehensive dashboard with live metrics, performance tracking, and business insights.</p>
-                    <ul class="service-features">
-                        <li>Live call monitoring</li>
-                        <li>Conversion tracking</li>
-                        <li>ROI analysis</li>
+                
+                <div class="coffee-card">
+                    <div class="coffee-card-header">
+                        <h3 class="coffee-card-title">📊 Real-time Analytics</h3>
+                        <p class="coffee-card-subtitle">Live business insights</p>
+                    </div>
+                    <p>Comprehensive dashboard with live metrics, performance tracking, and ROI analysis.</p>
+                    <ul class="coffee-font-mono coffee-text-sm">
+                        <li>• Live call monitoring</li>
+                        <li>• Conversion tracking</li>
+                        <li>• Business intelligence</li>
                     </ul>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">🤖</div>
-                    <h3>AI Automation</h3>
-                    <p>Intelligent business functions that handle customer follow-ups, lead scoring, and appointment scheduling.</p>
-                    <ul class="service-features">
-                        <li>Lead qualification</li>
-                        <li>Appointment booking</li>
-                        <li>Customer follow-up</li>
+                
+                <div class="coffee-card">
+                    <div class="coffee-card-header">
+                        <h3 class="coffee-card-title">🤖 AI Automation</h3>
+                        <p class="coffee-card-subtitle">Intelligent workflows</p>
+                    </div>
+                    <p>Smart business functions for customer follow-ups, lead scoring, and appointment scheduling.</p>
+                    <ul class="coffee-font-mono coffee-text-sm">
+                        <li>• Lead qualification</li>
+                        <li>• Appointment booking</li>
+                        <li>• Customer follow-up</li>
                     </ul>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="container">
-            <h2 class="section-title">Why Choose VoiceConnect Pro?</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-number">01</div>
-                    <h3>Easy Setup</h3>
+        <!-- Features Section -->
+        <section id="features" class="coffee-m-8">
+            <h2 class="coffee-text-center coffee-m-6">Why Choose VoiceConnect Pro?</h2>
+            <div class="coffee-grid coffee-grid-2">
+                <div class="coffee-card">
+                    <h3 class="coffee-font-mono">01. Easy Setup</h3>
                     <p>Get started in minutes with our plug-and-play SIM800C modules and intuitive dashboard.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-number">02</div>
-                    <h3>Scalable Solution</h3>
+                <div class="coffee-card">
+                    <h3 class="coffee-font-mono">02. Scalable Solution</h3>
                     <p>From small businesses to enterprises, our system grows with your needs.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-number">03</div>
-                    <h3>Cost Effective</h3>
+                <div class="coffee-card">
+                    <h3 class="coffee-font-mono">03. Cost Effective</h3>
                     <p>Reduce operational costs by up to 70% with automated calling and smart routing.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-number">04</div>
-                    <h3>24/7 Support</h3>
+                <div class="coffee-card">
+                    <h3 class="coffee-font-mono">04. 24/7 Support</h3>
                     <p>Our expert team is always available to help you maximize your results.</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
-        <div class="container">
-            <h2 class="section-title">Simple, Affordable Pricing</h2>
-            <div class="pricing-grid single-plan">
-                <div class="pricing-card featured">
-                    <div class="popular-badge">Best Value</div>
-                    <h3>VoiceConnect Pro</h3>
-                    <div class="price">
-                        <span class="currency">$</span>
-                        <span class="amount">20</span>
-                        <span class="period">/month</span>
+        <!-- Pricing Section -->
+        <section id="pricing" class="coffee-m-8">
+            <h2 class="coffee-text-center coffee-m-6">Simple, Affordable Pricing</h2>
+            <div class="coffee-text-center">
+                <div class="coffee-card coffee-m-6" style="max-width: 400px; margin: 0 auto;">
+                    <div class="coffee-alert coffee-alert-success coffee-text-center">
+                        <strong>Best Value</strong>
                     </div>
-                    <ul class="pricing-features">
-                        <li>Unlimited calls and SMS</li>
-                        <li>Multiple SIM800C modules</li>
-                        <li>Advanced AI automation</li>
-                        <li>Real-time analytics</li>
-                        <li>Multi-language support</li>
-                        <li>24/7 email support</li>
-                        <li>Local GSM integration</li>
-                        <li>Visual workflow builder</li>
+                    <h3 class="coffee-text-center coffee-m-4">VoiceConnect Pro</h3>
+                    <div class="coffee-text-center coffee-m-4">
+                        <span class="coffee-font-serif" style="font-size: 3rem; font-weight: bold;">$20</span>
+                        <span class="coffee-font-mono">/month</span>
+                    </div>
+                    <ul class="coffee-font-mono coffee-text-sm coffee-m-4">
+                        <li>• Unlimited calls and SMS</li>
+                        <li>• Multiple SIM800C modules</li>
+                        <li>• Advanced AI automation</li>
+                        <li>• Real-time analytics</li>
+                        <li>• Multi-language support</li>
+                        <li>• 24/7 email support</li>
+                        <li>• Local GSM integration</li>
+                        <li>• Visual workflow builder</li>
                     </ul>
-                    <button class="btn-primary btn-full" onclick="selectPlan('voiceconnect-pro')">Get Started Now</button>
+                    <a href="/login" class="coffee-btn coffee-btn-primary" style="width: 100%;">
+                        <span>Get Started Now</span>
+                    </a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">Get In Touch</h2>
-            <div class="contact-content">
-                <div class="contact-info">
+        <!-- Contact Section -->
+        <section id="contact" class="coffee-m-8">
+            <h2 class="coffee-text-center coffee-m-6">Get In Touch</h2>
+            <div class="coffee-grid coffee-grid-2">
+                <div class="coffee-card">
                     <h3>Ready to transform your business?</h3>
                     <p>Our team is here to help you get started with VoiceConnect Pro. Schedule a demo or ask any questions.</p>
-                    <div class="contact-methods">
-                        <div class="contact-method">
-                            <span class="contact-icon">📧</span>
-                            <span>hello@voiceconnectpro.com</span>
-                        </div>
-                        <div class="contact-method">
-                            <span class="contact-icon">📞</span>
-                            <span>+1 (555) 123-4567</span>
-                        </div>
-                        <div class="contact-method">
-                            <span class="contact-icon">💬</span>
-                            <span>Live chat available 24/7</span>
-                        </div>
+                    <div class="coffee-m-4">
+                        <p class="coffee-font-mono coffee-text-sm">📧 hello@voiceconnectpro.com</p>
+                        <p class="coffee-font-mono coffee-text-sm">📞 +1 (555) 123-4567</p>
+                        <p class="coffee-font-mono coffee-text-sm">💬 Live chat available 24/7</p>
                     </div>
                 </div>
-                <form class="contact-form" onsubmit="submitContactForm(event)">
-                    <input type="text" placeholder="Your Name" required>
-                    <input type="email" placeholder="Your Email" required>
-                    <input type="text" placeholder="Company Name">
-                    <textarea placeholder="Tell us about your needs" rows="4" required></textarea>
-                    <button type="submit" class="btn-primary btn-full">Send Message</button>
-                </form>
+                <div class="coffee-card">
+                    <form class="coffee-form" onsubmit="submitContactForm(event)">
+                        <div class="coffee-form-group">
+                            <label class="coffee-label">Your Name</label>
+                            <input type="text" class="coffee-input" required>
+                        </div>
+                        <div class="coffee-form-group">
+                            <label class="coffee-label">Your Email</label>
+                            <input type="email" class="coffee-input" required>
+                        </div>
+                        <div class="coffee-form-group">
+                            <label class="coffee-label">Company Name</label>
+                            <input type="text" class="coffee-input">
+                        </div>
+                        <div class="coffee-form-group">
+                            <label class="coffee-label">Tell us about your needs</label>
+                            <textarea class="coffee-input coffee-textarea" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="coffee-btn coffee-btn-primary" style="width: 100%;">
+                            <span>Send Message</span>
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>VoiceConnect Pro</h4>
-                    <p>The future of AI-powered call centers.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Product</h4>
-                    <a href="#features">Features</a>
-                    <a href="#pricing">Pricing</a>
-                    <a href="#services">Services</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Support</h4>
-                    <a href="#contact">Contact</a>
-                    <a href="/docs">Documentation</a>
-                    <a href="/help">Help Center</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Company</h4>
-                    <a href="/about">About</a>
-                    <a href="/careers">Careers</a>
-                    <a href="/privacy">Privacy</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 VoiceConnect Pro. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Welcome Back</h3>
-                <span class="close" onclick="closeModal('loginModal')">&times;</span>
-            </div>
-            <form class="auth-form" onsubmit="handleLogin(event)">
-                <input type="email" placeholder="Email" required>
-                <input type="password" placeholder="Password" required>
-                <button type="submit" class="btn-primary btn-full">Login</button>
-                <p class="auth-switch">
-                    Don't have an account? 
-                    <a href="#" onclick="switchModal('loginModal', 'signupModal')">Sign up</a>
+        <!-- Footer -->
+        <footer class="coffee-m-8 coffee-text-center">
+            <div style="border-top: 2px solid var(--accent-line); padding-top: var(--space-6);">
+                <h4 class="coffee-font-serif coffee-m-4">VoiceConnect Pro</h4>
+                <p class="coffee-font-sans coffee-text-sm coffee-m-4">
+                    The future of minimalistic AI-powered call centers.
                 </p>
-            </form>
-        </div>
+                <div class="coffee-grid coffee-grid-3 coffee-m-6">
+                    <div>
+                        <h5 class="coffee-font-sans coffee-weight-medium">Product</h5>
+                        <p class="coffee-font-mono coffee-text-sm">
+                            <a href="#features" class="coffee-nav-link">Features</a><br>
+                            <a href="#pricing" class="coffee-nav-link">Pricing</a><br>
+                            <a href="#services" class="coffee-nav-link">Services</a>
+                        </p>
+                    </div>
+                    <div>
+                        <h5 class="coffee-font-sans coffee-weight-medium">Support</h5>
+                        <p class="coffee-font-mono coffee-text-sm">
+                            <a href="#contact" class="coffee-nav-link">Contact</a><br>
+                            <a href="/docs" class="coffee-nav-link">Documentation</a><br>
+                            <a href="/help" class="coffee-nav-link">Help Center</a>
+                        </p>
+                    </div>
+                    <div>
+                        <h5 class="coffee-font-sans coffee-weight-medium">Company</h5>
+                        <p class="coffee-font-mono coffee-text-sm">
+                            <a href="/about" class="coffee-nav-link">About</a><br>
+                            <a href="/careers" class="coffee-nav-link">Careers</a><br>
+                            <a href="/privacy" class="coffee-nav-link">Privacy</a>
+                        </p>
+                    </div>
+                </div>
+                <p class="coffee-font-mono coffee-text-xs coffee-m-6">
+                    &copy; 2024 VoiceConnect Pro. All rights reserved.
+                </p>
+            </div>
+        </footer>
     </div>
 
-    <!-- Signup Modal -->
-    <div id="signupModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Get Started Today</h3>
-                <span class="close" onclick="closeModal('signupModal')">&times;</span>
-            </div>
-            <form class="auth-form" onsubmit="handleSignup(event)">
-                <input type="text" placeholder="Full Name" required>
-                <input type="email" placeholder="Email" required>
-                <input type="text" placeholder="Company Name" required>
-                <input type="tel" placeholder="Phone Number" required>
-                <input type="password" placeholder="Password" required>
-                <button type="submit" class="btn-primary btn-full">Start Free Trial</button>
-                <p class="auth-switch">
-                    Already have an account? 
-                    <a href="#" onclick="switchModal('signupModal', 'loginModal')">Login</a>
-                </p>
-            </form>
-        </div>
-    </div>
+    <!-- Coffee JavaScript -->
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Contact form submission
+        function submitContactForm(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span>Sending...</span>';
+            submitBtn.disabled = true;
+            
+            // Simulate form submission
+            setTimeout(() => {
+                alert('Thank you for your message! We\'ll get back to you soon.');
+                form.reset();
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        }
+
+        // Add coffee stain effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * -0.5;
+            document.body.style.backgroundPosition = `0 ${rate}px`;
+        });
+
+        // Add typing effect to headers
+        function typeWriter(element, text, speed = 100) {
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        // Initialize typing effect when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const title = document.querySelector('.coffee-title');
+            if (title) {
+                const originalText = title.textContent;
+                typeWriter(title, originalText, 150);
+            }
+        });
+    </script>
 
     <script src="script.js"></script>
 </body>

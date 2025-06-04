@@ -848,6 +848,41 @@ class SMSMessage(UUIDMixin, TimestampMixin, table=True):
     )
 
 
+class SMSVerification(UUIDMixin, TimestampMixin, table=True):
+    """
+    SMS verification model for phone number verification.
+    
+    Stores verification codes sent via SMS for authentication.
+    """
+    __tablename__ = "sms_verifications"
+    
+    # Basic Information
+    phone_number: str = Field(max_length=20, nullable=False)
+    code: str = Field(max_length=10, nullable=False)
+    purpose: str = Field(max_length=50, nullable=False)  # registration, login, phone_change, etc.
+    
+    # Status and Timing
+    expires_at: datetime = Field(nullable=False)
+    attempts: int = Field(default=0, nullable=False)
+    is_verified: bool = Field(default=False, nullable=False)
+    is_expired: bool = Field(default=False, nullable=False)
+    verified_at: Optional[datetime] = Field(default=None)
+    
+    # Associations
+    user_id: Optional[UUID] = Field(foreign_key="users.id", default=None)
+    
+    # Relationships
+    user: Optional["User"] = Relationship()
+    
+    __table_args__ = (
+        Index("idx_sms_verification_phone", "phone_number"),
+        Index("idx_sms_verification_purpose", "purpose"),
+        Index("idx_sms_verification_expires", "expires_at"),
+        Index("idx_sms_verification_verified", "is_verified"),
+        Index("idx_sms_verification_user", "user_id"),
+    )
+
+
 class ConversationContext(UUIDMixin, TimestampMixin, table=True):
     """
     Conversation context model for storing daily conversation history.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 VoiceConnect Pro - Main Web Application
-Web-only version without hardware dependencies for testing
+Coffee Paper Theme with Simple Authentication and Gemini Integration
 """
 
 import os
@@ -12,24 +12,25 @@ from pathlib import Path
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
-from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.security import HTTPBearer
-import uvicorn
-from contextlib import asynccontextmanager
+from flask import Flask, request, jsonify, session, render_template_string, redirect, url_for
+from flask_cors import CORS
+import logging
 
-# Import API routers
-from auth_api import router as auth_router
-from ai_tools_api import router as ai_tools_router
-from gemini_chat_api import router as gemini_chat_router
+# Import our simple authentication
+from simple_auth_api import SimpleAuthAPI
 
-# Import services
-from ai_tools_service import ai_tools_service
+# Import Gemini services
+try:
+    from gemini_chat_service import GeminiChatService
+    from gemini_response_parser import GeminiResponseParser
+except ImportError as e:
+    print(f"Warning: Gemini services not available: {e}")
+    GeminiChatService = None
+    GeminiResponseParser = None
 
-# Security
-security = HTTPBearer()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

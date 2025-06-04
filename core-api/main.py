@@ -255,6 +255,10 @@ app.include_router(call_webhook_router)
 app.include_router(gsm_status_router)
 app.include_router(get_telegram_router(), prefix="/api/v1")
 
+# Include secure authentication router
+from secure_auth_api import secure_auth_router
+app.include_router(secure_auth_router)
+
 # Include Click payment router
 from click_endpoints import router as click_router
 app.include_router(click_router)
@@ -278,6 +282,12 @@ async def serve_dashboard():
     """Serve the dashboard application with AI tools and Gemini chat"""
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/static/dashboard.html")
+
+@app.get("/login")
+async def serve_secure_login():
+    """Serve the secure login page with SMS verification"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/static/secure-login.html")
 
 # Business Tools API Endpoints
 @app.post("/api/v1/tools/execute")

@@ -15,7 +15,7 @@ alembic>=1.12.0
 
 # Communication APIs
 sendgrid>=6.10.0
-twilio>=8.10.0
+
 python-telegram-bot>=20.7.0
 tweepy>=4.14.0
 facebook-sdk>=3.1.0

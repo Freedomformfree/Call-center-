@@ -10,10 +10,10 @@ class APIKeysConfig:
     """Centralized API keys configuration"""
     
     def __init__(self):
-        # SMS & Communication APIs
-        self.twilio_account_sid: Optional[str] = os.getenv('TWILIO_ACCOUNT_SID')
-        self.twilio_auth_token: Optional[str] = os.getenv('TWILIO_AUTH_TOKEN')
-        self.twilio_phone_number: Optional[str] = os.getenv('TWILIO_PHONE_NUMBER')
+        # SMS & Communication APIs (Local SIM800C modules)
+        self.use_local_gsm: bool = os.getenv('USE_LOCAL_GSM', 'true').lower() == 'true'
+        self.sim800c_port: Optional[str] = os.getenv('SIM800C_PORT', '/dev/ttyUSB0')
+        self.sim800c_baudrate: int = int(os.getenv('SIM800C_BAUDRATE', '9600'))
         
         # Voice & Call APIs
         self.vonage_api_key: Optional[str] = os.getenv('VONAGE_API_KEY')

@@ -23,6 +23,24 @@
                 <a href="#contact" class="nav-link">Contact</a>
             </div>
             <div class="nav-auth">
+                <div class="language-selector">
+                    <button class="btn-language" onclick="toggleLanguageMenu()">
+                        <span id="currentLanguage">🌐 EN</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div id="languageMenu" class="language-menu">
+                        <div class="language-option" onclick="translatePage('en')">🇺🇸 English</div>
+                        <div class="language-option" onclick="translatePage('ru')">🇷🇺 Русский</div>
+                        <div class="language-option" onclick="translatePage('uz')">🇺🇿 O'zbek</div>
+                        <div class="language-option" onclick="translatePage('es')">🇪🇸 Español</div>
+                        <div class="language-option" onclick="translatePage('fr')">🇫🇷 Français</div>
+                        <div class="language-option" onclick="translatePage('de')">🇩🇪 Deutsch</div>
+                        <div class="language-option" onclick="translatePage('zh')">🇨🇳 中文</div>
+                        <div class="language-option" onclick="translatePage('ar')">🇸🇦 العربية</div>
+                        <div class="language-option" onclick="translatePage('hi')">🇮🇳 हिन्दी</div>
+                        <div class="language-option" onclick="translatePage('ja')">🇯🇵 日本語</div>
+                    </div>
+                </div>
                 <button class="btn-secondary" onclick="openModal('loginModal')">Login</button>
                 <button class="btn-primary" onclick="openModal('signupModal')">Sign Up</button>
             </div>
@@ -159,55 +177,27 @@
     <!-- Pricing Section -->
     <section id="pricing" class="pricing">
         <div class="container">
-            <h2 class="section-title">Simple, Transparent Pricing</h2>
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Starter</h3>
-                    <div class="price">
-                        <span class="currency">$</span>
-                        <span class="amount">99</span>
-                        <span class="period">/month</span>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>Up to 1,000 calls/month</li>
-                        <li>2 SIM800C modules</li>
-                        <li>Basic analytics</li>
-                        <li>Email support</li>
-                    </ul>
-                    <button class="btn-primary btn-full" onclick="selectPlan('starter')">Choose Plan</button>
-                </div>
+            <h2 class="section-title">Simple, Affordable Pricing</h2>
+            <div class="pricing-grid single-plan">
                 <div class="pricing-card featured">
-                    <div class="popular-badge">Most Popular</div>
-                    <h3>Professional</h3>
+                    <div class="popular-badge">Best Value</div>
+                    <h3>VoiceConnect Pro</h3>
                     <div class="price">
                         <span class="currency">$</span>
-                        <span class="amount">299</span>
+                        <span class="amount">20</span>
                         <span class="period">/month</span>
                     </div>
                     <ul class="pricing-features">
-                        <li>Up to 5,000 calls/month</li>
-                        <li>5 SIM800C modules</li>
-                        <li>Advanced analytics</li>
-                        <li>AI automation tools</li>
-                        <li>Priority support</li>
+                        <li>Unlimited calls and SMS</li>
+                        <li>Multiple SIM800C modules</li>
+                        <li>Advanced AI automation</li>
+                        <li>Real-time analytics</li>
+                        <li>Multi-language support</li>
+                        <li>24/7 email support</li>
+                        <li>Local GSM integration</li>
+                        <li>Visual workflow builder</li>
                     </ul>
-                    <button class="btn-primary btn-full" onclick="selectPlan('professional')">Choose Plan</button>
-                </div>
-                <div class="pricing-card">
-                    <h3>Enterprise</h3>
-                    <div class="price">
-                        <span class="currency">$</span>
-                        <span class="amount">799</span>
-                        <span class="period">/month</span>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>Unlimited calls</li>
-                        <li>Unlimited modules</li>
-                        <li>Custom integrations</li>
-                        <li>Dedicated account manager</li>
-                        <li>24/7 phone support</li>
-                    </ul>
-                    <button class="btn-primary btn-full" onclick="selectPlan('enterprise')">Choose Plan</button>
+                    <button class="btn-primary btn-full" onclick="selectPlan('voiceconnect-pro')">Get Started Now</button>
                 </div>
             </div>
         </div>

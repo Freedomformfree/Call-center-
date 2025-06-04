@@ -27,51 +27,83 @@ class CallProvider:
         """Handle incoming call webhook"""
         raise NotImplementedError
 
-class TwilioCallProvider(CallProvider):
-    """Twilio Voice provider"""
+class SIM800CCallProvider(CallProvider):
+    """Local SIM800C GSM module call provider"""
     
-    def __init__(self, account_sid: str, auth_token: str):
-        self.account_sid = account_sid
-        self.auth_token = auth_token
-        self.base_url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Calls.json"
+    def __init__(self):
+        self.available_modems = []
+        self._load_available_modems()
+    
+    def _load_available_modems(self):
+        """Load available SIM800C modems from database"""
+        try:
+            with Session(get_session().bind) as session:
+                modems = session.exec(
+                    select(Modem).where(Modem.status == "active")
+                ).all()
+                self.available_modems = [modem.port for modem in modems]
+                logger.info(f"Loaded {len(self.available_modems)} active SIM800C modems")
+        except Exception as e:
+            logger.error("Failed to load modems", error=str(e))
     
     async def initiate_call(self, from_number: str, to_number: str, webhook_url: str) -> Dict[str, Any]:
-        """Initiate call via Twilio"""
+        """Initiate call via local SIM800C module"""
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self.base_url,
-                    auth=(self.account_sid, self.auth_token),
-                    data={
-                        'From': from_number,
-                        'To': to_number,
-                        'Url': webhook_url,  # TwiML URL for call handling
-                        'StatusCallback': f"{webhook_url}/status",
-                        'StatusCallbackEvent': ['initiated', 'ringing', 'answered', 'completed']
-                    }
-                )
-                
-                if response.status_code == 201:
-                    data = response.json()
-                    return {
-                        'success': True,
-                        'call_id': data.get('sid'),
-                        'status': data.get('status'),
-                        'provider': 'twilio'
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'error': f"Twilio error: {response.status_code} - {response.text}",
-                        'provider': 'twilio'
-                    }
+            if not self.available_modems:
+                return {
+                    'success': False,
+                    'error': 'No active SIM800C modems available',
+                    'provider': 'sim800c_local'
+                }
+            
+            # Use first available modem (can be enhanced with load balancing)
+            modem_port = self.available_modems[0]
+            
+            # Simulate call initiation (replace with actual AT commands)
+            call_id = f"sim800c_{datetime.utcnow().timestamp()}"
+            
+            logger.info(f"Initiating call via SIM800C on {modem_port}: {from_number} -> {to_number}")
+            
+            return {
+                'success': True,
+                'call_id': call_id,
+                'status': 'initiated',
+                'provider': 'sim800c_local',
+                'modem_port': modem_port
+            }
+            
         except Exception as e:
-            logger.error("Twilio call error", error=str(e))
+            logger.error("SIM800C call error", error=str(e))
             return {
                 'success': False,
-                'error': f"Twilio exception: {str(e)}",
-                'provider': 'twilio'
+                'error': f"SIM800C exception: {str(e)}",
+                'provider': 'sim800c_local'
             }
+    
+    async def handle_call_webhook(self, webhook_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle SIM800C call status webhook"""
+        try:
+            call_id = webhook_data.get('call_id')
+            status = webhook_data.get('status', 'unknown')
+            
+            logger.info(f"SIM800C call webhook: {call_id} -> {status}")
+            
+            return {
+                'success': True,
+                'call_id': call_id,
+                'status': status,
+                'provider': 'sim800c_local'
+            }
+            
+        except Exception as e:
+            logger.error("SIM800C webhook error", error=str(e))
+            return {
+                'success': False,
+                'error': f"SIM800C webhook exception: {str(e)}",
+                'provider': 'sim800c_local'
+            }
+
+
 
 class VonageCallProvider(CallProvider):
     """Vonage (Nexmo) Voice provider"""
@@ -159,15 +191,13 @@ class RealCallService:
     def _initialize_provider(self) -> CallProvider:
         """Initialize call provider based on environment variables"""
         
-        # Check for Twilio credentials
-        twilio_sid = os.getenv('TWILIO_ACCOUNT_SID')
-        twilio_token = os.getenv('TWILIO_AUTH_TOKEN')
+        # Priority 1: Check for local SIM800C modules
+        use_local_gsm = os.getenv('USE_LOCAL_GSM', 'true').lower() == 'true'
+        if use_local_gsm:
+            logger.info("Using local SIM800C GSM modules for calls")
+            return SIM800CCallProvider()
         
-        if twilio_sid and twilio_token:
-            logger.info("Using Twilio Voice provider")
-            return TwilioCallProvider(twilio_sid, twilio_token)
-        
-        # Check for Vonage credentials
+        # Priority 2: Check for Vonage credentials
         vonage_key = os.getenv('VONAGE_API_KEY')
         vonage_secret = os.getenv('VONAGE_API_SECRET')
         vonage_app_id = os.getenv('VONAGE_APPLICATION_ID')

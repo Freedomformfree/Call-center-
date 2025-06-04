@@ -530,7 +530,7 @@ function loadApiKeys() {
     if (!apiKeysList) return;
 
     const apiKeys = [
-        { service: 'Twilio', status: 'configured', masked: '••••••••••••1234' },
+        { service: 'SIM800C Local GSM', status: 'configured', masked: '/dev/ttyUSB0' },
         { service: 'OpenAI', status: 'configured', masked: '••••••••••••5678' },
         { service: 'Stripe', status: 'not_configured', masked: 'Not set' },
         { service: 'SendGrid', status: 'configured', masked: '••••••••••••9012' }

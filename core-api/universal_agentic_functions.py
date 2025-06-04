@@ -160,44 +160,29 @@ class SMSBulkSenderFunction(AgenticFunction):
                         for key, value in personalization[phone].items():
                             message = message.replace(f"{{{key}}}", str(value))
                     
-                    # Use Twilio, AWS SNS, or similar service
-                    if hasattr(self.config, 'twilio_account_sid'):
-                        auth = (self.config.twilio_account_sid, self.config.twilio_auth_token)
-                        
-                        response = await client.post(
-                            f'https://api.twilio.com/2010-04-01/Accounts/{self.config.twilio_account_sid}/Messages.json',
-                            auth=auth,
-                            data={
-                                'From': self.config.twilio_phone_number,
-                                'To': phone,
-                                'Body': message
-                            }
-                        )
-                        
-                        if response.status_code == 201:
-                            sms_data = response.json()
-                            sent_messages.append({
-                                'sms_id': sms_data.get('sid'),
-                                'phone': phone,
-                                'message': message,
-                                'status': 'sent'
-                            })
-                        else:
-                            sent_messages.append({
-                                'sms_id': f"sms_{uuid.uuid4().hex[:8]}",
-                                'phone': phone,
-                                'message': message,
-                                'status': 'failed',
-                                'error': response.text
-                            })
-                    else:
-                        # Fallback simulation
-                        sms_id = f"sms_{uuid.uuid4().hex[:8]}"
+                    # Use local SIM800C modules or other SMS service
+                    # Import and use the real SMS service
+                    from real_sms_service import RealSMSService
+                    sms_service = RealSMSService()
+                    
+                    # Send SMS via local service
+                    sms_result = await sms_service.send_notification_sms(phone, message)
+                    
+                    if sms_result.get('success'):
                         sent_messages.append({
-                            'sms_id': sms_id,
+                            'sms_id': sms_result.get('sms_id', f"sms_{uuid.uuid4().hex[:8]}"),
                             'phone': phone,
                             'message': message,
-                            'status': 'sent'
+                            'status': 'sent',
+                            'provider': sms_result.get('provider', 'sim800c_local')
+                        })
+                    else:
+                        sent_messages.append({
+                            'sms_id': f"sms_{uuid.uuid4().hex[:8]}",
+                            'phone': phone,
+                            'message': message,
+                            'status': 'failed',
+                            'error': sms_result.get('error', 'Unknown error')
                         })
             
             return FunctionResult(

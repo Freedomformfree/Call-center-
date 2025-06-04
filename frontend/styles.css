@@ -148,6 +148,90 @@ body {
 .nav-auth {
     display: flex;
     gap: var(--spacing-md);
+    align-items: center;
+}
+
+/* Language Selector */
+.language-selector {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-language {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 2px solid var(--accent-color);
+    background: transparent;
+    color: var(--accent-color);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: var(--transition-normal);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    border-radius: 4px;
+}
+
+.btn-language:hover {
+    background: var(--accent-color);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    transition: transform var(--transition-fast);
+}
+
+.language-selector.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.language-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--bg-darker);
+    border: 2px solid var(--accent-color);
+    border-radius: 4px;
+    min-width: 150px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-normal);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.language-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.language-option {
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    font-size: var(--font-size-sm);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.language-option:last-child {
+    border-bottom: none;
+}
+
+.language-option:hover {
+    background: var(--accent-color);
+    color: var(--bg-dark);
+}
+
+.language-option:hover::before {
+    content: '→';
+    margin-right: var(--spacing-xs);
 }
 
 /* Buttons */
@@ -519,6 +603,12 @@ body {
     gap: var(--spacing-xl);
     max-width: 1000px;
     margin: 0 auto;
+}
+
+.pricing-grid.single-plan {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    justify-items: center;
 }
 
 .pricing-card {

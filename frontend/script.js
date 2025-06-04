@@ -4,6 +4,8 @@
 // Global state
 let isLoggedIn = false;
 let currentUser = null;
+let currentLanguage = 'en';
+let originalTexts = new Map();
 
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -557,3 +559,526 @@ function initializeMatrixRain() {
 
 // Uncomment to enable matrix rain effect
 // initializeMatrixRain();
+
+// Translation functionality
+const translations = {
+    'ru': {
+        'VoiceConnect': 'VoiceConnect',
+        'Pro': 'Pro',
+        'Home': 'Главная',
+        'Services': 'Услуги',
+        'Features': 'Возможности',
+        'Pricing': 'Цены',
+        'Contact': 'Контакты',
+        'Login': 'Войти',
+        'Sign Up': 'Регистрация',
+        'AI-Powered Call Center': 'ИИ-Колл-центр',
+        'That Actually Works': 'Который Действительно Работает',
+        'Transform your business with intelligent call automation, real-time analytics, and seamless customer engagement.': 'Трансформируйте свой бизнес с помощью интеллектуальной автоматизации звонков, аналитики в реальном времени и бесшовного взаимодействия с клиентами.',
+        'Start Free Trial': 'Начать Бесплатный Пробный Период',
+        'Learn More': 'Узнать Больше',
+        'Our Services': 'Наши Услуги',
+        'Automated Calling': 'Автоматические Звонки',
+        'AI-powered outbound calling with natural conversation flow and intelligent lead qualification.': 'ИИ-звонки с естественным потоком разговора и интеллектуальной квалификацией лидов.',
+        'Smart dialing algorithms': 'Умные алгоритмы набора',
+        'Voice recognition': 'Распознавание голоса',
+        'Call recording & analysis': 'Запись и анализ звонков',
+        'SMS Campaigns': 'SMS Кампании',
+        'Multi-channel SMS marketing with SIM800C integration for reliable message delivery.': 'Многоканальный SMS маркетинг с интеграцией SIM800C для надежной доставки сообщений.',
+        'Bulk SMS sending': 'Массовая отправка SMS',
+        'Delivery tracking': 'Отслеживание доставки',
+        'Response automation': 'Автоматизация ответов',
+        'Real-time Analytics': 'Аналитика в Реальном Времени',
+        'Comprehensive dashboard with live metrics, performance tracking, and business insights.': 'Комплексная панель с живыми метриками, отслеживанием производительности и бизнес-аналитикой.',
+        'Live call monitoring': 'Мониторинг звонков в реальном времени',
+        'Conversion tracking': 'Отслеживание конверсий',
+        'ROI analysis': 'Анализ ROI',
+        'AI Automation': 'ИИ Автоматизация',
+        'Intelligent business functions that handle customer follow-ups, lead scoring, and appointment scheduling.': 'Интеллектуальные бизнес-функции для работы с клиентами, оценки лидов и планирования встреч.',
+        'Lead qualification': 'Квалификация лидов',
+        'Appointment booking': 'Бронирование встреч',
+        'Customer follow-up': 'Работа с клиентами',
+        'Why Choose VoiceConnect Pro?': 'Почему Выбрать VoiceConnect Pro?',
+        'Easy Setup': 'Простая Настройка',
+        'Get started in minutes with our plug-and-play SIM800C modules and intuitive dashboard.': 'Начните работу за минуты с нашими модулями SIM800C и интуитивной панелью управления.',
+        'Scalable Solution': 'Масштабируемое Решение',
+        'From small businesses to enterprises, our system grows with your needs.': 'От малого бизнеса до предприятий, наша система растет вместе с вашими потребностями.',
+        'Cost Effective': 'Экономически Эффективно',
+        'Reduce operational costs by up to 70% with automated calling and smart routing.': 'Сократите операционные расходы до 70% с автоматическими звонками и умной маршрутизацией.',
+        '24/7 Support': 'Поддержка 24/7',
+        'Our expert team is always available to help you maximize your results.': 'Наша команда экспертов всегда готова помочь вам максимизировать результаты.',
+        'Simple, Affordable Pricing': 'Простые, Доступные Цены',
+        'VoiceConnect Pro': 'VoiceConnect Pro',
+        'Best Value': 'Лучшая Цена',
+        'Unlimited calls and SMS': 'Неограниченные звонки и SMS',
+        'Multiple SIM800C modules': 'Несколько модулей SIM800C',
+        'Advanced AI automation': 'Продвинутая ИИ автоматизация',
+        'Real-time analytics': 'Аналитика в реальном времени',
+        'Multi-language support': 'Поддержка многих языков',
+        '24/7 email support': 'Поддержка по email 24/7',
+        'Local GSM integration': 'Интеграция с локальным GSM',
+        'Visual workflow builder': 'Визуальный конструктор процессов',
+        'Get Started Now': 'Начать Сейчас',
+        '5 SIM800C modules': '5 модулей SIM800C',
+        'Advanced analytics': 'Продвинутая аналитика',
+        'AI automation tools': 'Инструменты ИИ автоматизации',
+        'Priority support': 'Приоритетная поддержка',
+        'Unlimited calls': 'Неограниченные звонки',
+        'Unlimited modules': 'Неограниченные модули',
+        'Custom integrations': 'Пользовательские интеграции',
+        'Dedicated account manager': 'Персональный менеджер',
+        '24/7 phone support': 'Телефонная поддержка 24/7',
+        'Get In Touch': 'Связаться с Нами',
+        'Ready to transform your business?': 'Готовы трансформировать свой бизнес?',
+        'Our team is here to help you get started with VoiceConnect Pro. Schedule a demo or ask any questions.': 'Наша команда готова помочь вам начать работу с VoiceConnect Pro. Запланируйте демо или задайте вопросы.',
+        'Your Name': 'Ваше Имя',
+        'Your Email': 'Ваш Email',
+        'Company Name': 'Название Компании',
+        'Tell us about your needs': 'Расскажите о ваших потребностях',
+        'Send Message': 'Отправить Сообщение',
+        'The future of AI-powered call centers.': 'Будущее ИИ-колл-центров.',
+        'Product': 'Продукт',
+        'Support': 'Поддержка',
+        'Documentation': 'Документация',
+        'Help Center': 'Центр Помощи',
+        'Company': 'Компания',
+        'About': 'О нас',
+        'Careers': 'Карьера',
+        'Privacy': 'Конфиденциальность',
+        '© 2024 VoiceConnect Pro. All rights reserved.': '© 2024 VoiceConnect Pro. Все права защищены.',
+        'Welcome Back': 'Добро Пожаловать',
+        'Email': 'Email',
+        'Password': 'Пароль',
+        'Don\'t have an account?': 'Нет аккаунта?',
+        'Sign up': 'Зарегистрироваться',
+        'Get Started Today': 'Начните Сегодня',
+        'Full Name': 'Полное Имя',
+        'Phone Number': 'Номер Телефона',
+        'Already have an account?': 'Уже есть аккаунт?',
+        'contactSuccess': 'Сообщение отправлено успешно!',
+        'contactError': 'Ошибка отправки сообщения. Попробуйте снова.',
+        'planSelected': 'План выбран успешно! Мы свяжемся с вами в ближайшее время.',
+        'planError': 'Ошибка выбора плана. Попробуйте снова.'
+    },
+    'uz': {
+        'VoiceConnect': 'VoiceConnect',
+        'Pro': 'Pro',
+        'Home': 'Bosh sahifa',
+        'Services': 'Xizmatlar',
+        'Features': 'Imkoniyatlar',
+        'Pricing': 'Narxlar',
+        'Contact': 'Aloqa',
+        'Login': 'Kirish',
+        'Sign Up': 'Ro\'yxatdan o\'tish',
+        'AI-Powered Call Center': 'AI-Quvvatli Qo\'ng\'iroq Markazi',
+        'That Actually Works': 'Haqiqatan Ham Ishlaydigan',
+        'Transform your business with intelligent call automation, real-time analytics, and seamless customer engagement.': 'Biznesingizni aqlli qo\'ng\'iroq avtomatizatsiyasi, real vaqt tahlili va uzluksiz mijozlar bilan ishlash orqali o\'zgartiring.',
+        'Start Free Trial': 'Bepul Sinov Boshlash',
+        'Learn More': 'Ko\'proq O\'rganish',
+        'Our Services': 'Bizning Xizmatlarimiz',
+        'Automated Calling': 'Avtomatik Qo\'ng\'iroqlar',
+        'AI-powered outbound calling with natural conversation flow and intelligent lead qualification.': 'Tabiiy suhbat oqimi va aqlli lead baholash bilan AI-quvvatli chiquvchi qo\'ng\'iroqlar.',
+        'Smart dialing algorithms': 'Aqlli terish algoritmlari',
+        'Voice recognition': 'Ovoz tanish',
+        'Call recording & analysis': 'Qo\'ng\'iroqlarni yozish va tahlil',
+        'SMS Campaigns': 'SMS Kampaniyalar',
+        'Multi-channel SMS marketing with SIM800C integration for reliable message delivery.': 'Ishonchli xabar yetkazish uchun SIM800C integratsiyasi bilan ko\'p kanalli SMS marketing.',
+        'Bulk SMS sending': 'Ommaviy SMS yuborish',
+        'Delivery tracking': 'Yetkazishni kuzatish',
+        'Response automation': 'Javob avtomatizatsiyasi',
+        'Real-time Analytics': 'Real Vaqt Tahlili',
+        'Comprehensive dashboard with live metrics, performance tracking, and business insights.': 'Jonli ko\'rsatkichlar, ishlash kuzatuvi va biznes tahlili bilan to\'liq dashboard.',
+        'Live call monitoring': 'Jonli qo\'ng\'iroqlarni kuzatish',
+        'Conversion tracking': 'Konversiya kuzatuvi',
+        'ROI analysis': 'ROI tahlili',
+        'AI Automation': 'AI Avtomatizatsiya',
+        'Intelligent business functions that handle customer follow-ups, lead scoring, and appointment scheduling.': 'Mijozlar bilan ishlash, lead baholash va uchrashuvlarni rejalashtirish uchun aqlli biznes funksiyalar.',
+        'Lead qualification': 'Lead baholash',
+        'Appointment booking': 'Uchrashuvlarni bron qilish',
+        'Customer follow-up': 'Mijozlar bilan ishlash',
+        'Why Choose VoiceConnect Pro?': 'Nega VoiceConnect Pro ni Tanlash Kerak?',
+        'Easy Setup': 'Oson O\'rnatish',
+        'Get started in minutes with our plug-and-play SIM800C modules and intuitive dashboard.': 'Bizning plug-and-play SIM800C modullari va intuitiv dashboard bilan daqiqalar ichida boshlang.',
+        'Scalable Solution': 'Kengaytiriladigan Yechim',
+        'From small businesses to enterprises, our system grows with your needs.': 'Kichik biznesdan korxonalargacha, bizning tizimimiz sizning ehtiyojlaringiz bilan o\'sadi.',
+        'Cost Effective': 'Tejamkor',
+        'Reduce operational costs by up to 70% with automated calling and smart routing.': 'Avtomatik qo\'ng\'iroqlar va aqlli marshrutlash bilan operatsion xarajatlarni 70% gacha kamaytiring.',
+        '24/7 Support': '24/7 Qo\'llab-quvvatlash',
+        'Our expert team is always available to help you maximize your results.': 'Bizning ekspert jamoamiz natijalaringizni maksimallashtirish uchun doimo tayyor.',
+        'Simple, Affordable Pricing': 'Oddiy, Arzon Narxlar',
+        'VoiceConnect Pro': 'VoiceConnect Pro',
+        'Best Value': 'Eng Yaxshi Narx',
+        'Unlimited calls and SMS': 'Cheksiz qo\'ng\'iroqlar va SMS',
+        'Multiple SIM800C modules': 'Ko\'p SIM800C modullari',
+        'Advanced AI automation': 'Ilg\'or AI avtomatizatsiya',
+        'Real-time analytics': 'Real vaqt tahlili',
+        'Multi-language support': 'Ko\'p til qo\'llab-quvvatlash',
+        '24/7 email support': '24/7 email qo\'llab-quvvatlash',
+        'Local GSM integration': 'Mahalliy GSM integratsiyasi',
+        'Visual workflow builder': 'Vizual ish oqimi quruvchisi',
+        'Get Started Now': 'Hozir Boshlash',
+        '5 SIM800C modules': '5 ta SIM800C moduli',
+        'Advanced analytics': 'Ilg\'or tahlil',
+        'AI automation tools': 'AI avtomatizatsiya vositalari',
+        'Priority support': 'Ustuvor qo\'llab-quvvatlash',
+        'Unlimited calls': 'Cheksiz qo\'ng\'iroqlar',
+        'Unlimited modules': 'Cheksiz modullar',
+        'Custom integrations': 'Maxsus integratsiyalar',
+        'Dedicated account manager': 'Maxsus hisob menejeri',
+        '24/7 phone support': '24/7 telefon qo\'llab-quvvatlash',
+        'Get In Touch': 'Bog\'lanish',
+        'Ready to transform your business?': 'Biznesingizni o\'zgartirishga tayyormisiz?',
+        'Our team is here to help you get started with VoiceConnect Pro. Schedule a demo or ask any questions.': 'Bizning jamoamiz VoiceConnect Pro bilan boshlashingizga yordam berish uchun shu yerda. Demo rejalashtiring yoki savollar bering.',
+        'Your Name': 'Ismingiz',
+        'Your Email': 'Emailingiz',
+        'Company Name': 'Kompaniya Nomi',
+        'Tell us about your needs': 'Ehtiyojlaringiz haqida ayting',
+        'Send Message': 'Xabar Yuborish',
+        'The future of AI-powered call centers.': 'AI-quvvatli qo\'ng\'iroq markazlarining kelajagi.',
+        'Product': 'Mahsulot',
+        'Support': 'Qo\'llab-quvvatlash',
+        'Documentation': 'Hujjatlar',
+        'Help Center': 'Yordam Markazi',
+        'Company': 'Kompaniya',
+        'About': 'Haqida',
+        'Careers': 'Karyera',
+        'Privacy': 'Maxfiylik',
+        '© 2024 VoiceConnect Pro. All rights reserved.': '© 2024 VoiceConnect Pro. Barcha huquqlar himoyalangan.',
+        'Welcome Back': 'Xush Kelibsiz',
+        'Email': 'Email',
+        'Password': 'Parol',
+        'Don\'t have an account?': 'Hisobingiz yo\'qmi?',
+        'Sign up': 'Ro\'yxatdan o\'ting',
+        'Get Started Today': 'Bugun Boshlang',
+        'Full Name': 'To\'liq Ism',
+        'Phone Number': 'Telefon Raqami',
+        'Already have an account?': 'Allaqachon hisobingiz bormi?',
+        'contactSuccess': 'Xabar muvaffaqiyatli yuborildi!',
+        'contactError': 'Xabar yuborishda xatolik. Qaytadan urinib ko\'ring.',
+        'planSelected': 'Reja muvaffaqiyatli tanlandi! Tez orada siz bilan bog\'lanamiz.',
+        'planError': 'Rejani tanlashda xatolik. Qaytadan urinib ko\'ring.'
+    }
+};
+
+// Language selector functions
+function toggleLanguageMenu() {
+    const languageMenu = document.getElementById('languageMenu');
+    const languageSelector = document.querySelector('.language-selector');
+    
+    languageMenu.classList.toggle('active');
+    languageSelector.classList.toggle('active');
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function closeMenu(e) {
+        if (!languageSelector.contains(e.target)) {
+            languageMenu.classList.remove('active');
+            languageSelector.classList.remove('active');
+            document.removeEventListener('click', closeMenu);
+        }
+    });
+}
+
+function translatePage(targetLanguage) {
+    if (targetLanguage === currentLanguage) return;
+    
+    const languageMenu = document.getElementById('languageMenu');
+    const languageSelector = document.querySelector('.language-selector');
+    const currentLanguageSpan = document.getElementById('currentLanguage');
+    
+    // Close language menu
+    languageMenu.classList.remove('active');
+    languageSelector.classList.remove('active');
+    
+    // Store original texts if this is the first translation
+    if (currentLanguage === 'en' && originalTexts.size === 0) {
+        storeOriginalTexts();
+    }
+    
+    // Update current language
+    currentLanguage = targetLanguage;
+    
+    // Update language button text
+    const languageFlags = {
+        'en': '🌐 EN',
+        'ru': '🇷🇺 RU',
+        'uz': '🇺🇿 UZ',
+        'es': '🇪🇸 ES',
+        'fr': '🇫🇷 FR',
+        'de': '🇩🇪 DE',
+        'zh': '🇨🇳 ZH',
+        'ar': '🇸🇦 AR',
+        'hi': '🇮🇳 HI',
+        'ja': '🇯🇵 JA'
+    };
+    
+    currentLanguageSpan.textContent = languageFlags[targetLanguage] || '🌐 EN';
+    
+    // Apply translations
+    if (targetLanguage === 'en') {
+        restoreOriginalTexts();
+    } else {
+        applyTranslations(targetLanguage);
+    }
+    
+    // Show notification
+    const languageNames = {
+        'en': 'English',
+        'ru': 'Русский',
+        'uz': 'O\'zbek',
+        'es': 'Español',
+        'fr': 'Français',
+        'de': 'Deutsch',
+        'zh': '中文',
+        'ar': 'العربية',
+        'hi': 'हिन्दी',
+        'ja': '日本語'
+    };
+    
+    showNotification(`Page translated to ${languageNames[targetLanguage]}`, 'success');
+}
+
+function storeOriginalTexts() {
+    // Store all translatable text elements
+    const translatableElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, button, span, li, label, input[placeholder], textarea[placeholder]');
+    
+    translatableElements.forEach((element, index) => {
+        const key = `element_${index}`;
+        
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            if (element.placeholder) {
+                originalTexts.set(key + '_placeholder', element.placeholder);
+            }
+        } else {
+            // Store text content, but preserve child elements
+            const textContent = element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE 
+                ? element.textContent.trim() 
+                : element.textContent.trim();
+            
+            if (textContent && !element.querySelector('input, button, a') && !element.closest('.language-menu')) {
+                originalTexts.set(key, textContent);
+            }
+        }
+        
+        // Store element reference
+        element.setAttribute('data-translate-key', key);
+    });
+}
+
+function applyTranslations(targetLanguage) {
+    const targetTranslations = translations[targetLanguage];
+    if (!targetTranslations) return;
+    
+    // Translate elements
+    document.querySelectorAll('[data-translate-key]').forEach(element => {
+        const key = element.getAttribute('data-translate-key');
+        
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            const placeholderKey = key + '_placeholder';
+            const originalPlaceholder = originalTexts.get(placeholderKey);
+            if (originalPlaceholder && targetTranslations[originalPlaceholder]) {
+                element.placeholder = targetTranslations[originalPlaceholder];
+            }
+        } else {
+            const originalText = originalTexts.get(key);
+            if (originalText && targetTranslations[originalText]) {
+                // Preserve HTML structure while replacing text
+                if (element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE) {
+                    element.textContent = targetTranslations[originalText];
+                } else {
+                    // For elements with mixed content, replace text nodes only
+                    element.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === originalText) {
+                            node.textContent = targetTranslations[originalText];
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
+function restoreOriginalTexts() {
+    document.querySelectorAll('[data-translate-key]').forEach(element => {
+        const key = element.getAttribute('data-translate-key');
+        
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            const placeholderKey = key + '_placeholder';
+            const originalPlaceholder = originalTexts.get(placeholderKey);
+            if (originalPlaceholder) {
+                element.placeholder = originalPlaceholder;
+            }
+        } else {
+            const originalText = originalTexts.get(key);
+            if (originalText) {
+                if (element.childNodes.length === 1 && element.childNodes[0].nodeType === Node.TEXT_NODE) {
+                    element.textContent = originalText;
+                } else {
+                    // Restore original text in text nodes
+                    element.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                            node.textContent = originalText;
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
+// API Configuration
+const API_BASE_URL = 'http://localhost:8000/api';
+
+// API Functions
+async function submitContactForm(formData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/contact`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error submitting contact form:', error);
+        throw error;
+    }
+}
+
+async function selectPlan(planData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/select-plan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(planData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error selecting plan:', error);
+        throw error;
+    }
+}
+
+async function getSystemStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/health`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error getting system status:', error);
+        return { status: 'offline', services: {} };
+    }
+}
+
+async function getAnalytics() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/analytics`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error getting analytics:', error);
+        return { data: {} };
+    }
+}
+
+// Enhanced form submission
+document.addEventListener('DOMContentLoaded', function() {
+    // Contact form submission
+    const contactForm = document.querySelector('#contact form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                company: formData.get('company') || '',
+                message: formData.get('message')
+            };
+            
+            try {
+                const result = await submitContactForm(data);
+                alert(translations[currentLanguage].contactSuccess || 'Message sent successfully!');
+                this.reset();
+            } catch (error) {
+                alert(translations[currentLanguage].contactError || 'Error sending message. Please try again.');
+            }
+        });
+    }
+    
+    // Plan selection buttons
+    const planButtons = document.querySelectorAll('.plan-button, .cta-button');
+    planButtons.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            if (this.textContent.includes('$') || this.textContent.includes('Choose') || this.textContent.includes('Get Started')) {
+                e.preventDefault();
+                
+                const planData = {
+                    plan: 'VoiceConnect Pro',
+                    email: ''
+                };
+                
+                try {
+                    const result = await selectPlan(planData);
+                    alert(translations[currentLanguage].planSelected || 'Plan selected successfully! We will contact you soon.');
+                } catch (error) {
+                    alert(translations[currentLanguage].planError || 'Error selecting plan. Please try again.');
+                }
+            }
+        });
+    });
+    
+    // Load system status
+    loadSystemStatus();
+    
+    // Update status every 30 seconds
+    setInterval(loadSystemStatus, 30000);
+});
+
+async function loadSystemStatus() {
+    try {
+        const status = await getSystemStatus();
+        updateStatusIndicators(status);
+    } catch (error) {
+        console.error('Failed to load system status:', error);
+    }
+}
+
+function updateStatusIndicators(status) {
+    // Update any status indicators on the page
+    const statusElements = document.querySelectorAll('.status-indicator');
+    statusElements.forEach(element => {
+        if (status.status === 'healthy') {
+            element.classList.add('online');
+            element.classList.remove('offline');
+            element.textContent = 'System Online';
+        } else {
+            element.classList.add('offline');
+            element.classList.remove('online');
+            element.textContent = 'System Offline';
+        }
+    });
+}

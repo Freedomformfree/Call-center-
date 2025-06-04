@@ -89,8 +89,9 @@ services:
       - REDIS_URL=redis://redis:6379/1
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - STRIPE_API_KEY=${STRIPE_API_KEY}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - USE_LOCAL_GSM=true
+      - SIM800C_PORT=/dev/ttyUSB0
+      - SIM800C_BAUDRATE=9600
     volumes:
       - core_api_data:/app/data
     depends_on:

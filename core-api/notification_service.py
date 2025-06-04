@@ -150,8 +150,8 @@ class NotificationService:
         """Initialize notification delivery providers"""
         return {
             NotificationChannel.SMS: {
-                "primary": "twilio",
-                "fallback": "aws_sns",
+                "primary": "sim800c_local",
+                "fallback": "sms_ru",
                 "rate_limit": 100  # per minute
             },
             NotificationChannel.EMAIL: {
@@ -484,8 +484,8 @@ class NotificationService:
                 )
             
             # Process based on provider
-            if provider == "twilio":
-                result = await self._process_twilio_webhook(payload)
+            if provider == "sim800c_local":
+                result = await self._process_sim800c_webhook(payload)
             elif provider == "sendgrid":
                 result = await self._process_sendgrid_webhook(payload)
             elif provider == "firebase":
@@ -673,7 +673,7 @@ class NotificationService:
     ) -> NotificationResult:
         """Send SMS notification"""
         try:
-            # Implement SMS sending via Twilio or other provider
+            # Implement SMS sending via local SIM800C modules or other provider
             # This is a simplified implementation
             
             # Validate phone number
@@ -899,10 +899,10 @@ class NotificationService:
         # This is a simplified implementation
         return True
     
-    async def _process_twilio_webhook(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Process Twilio delivery webhook"""
-        # Update delivery status based on Twilio webhook
-        return {"status": "processed", "provider": "twilio"}
+    async def _process_sim800c_webhook(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Process SIM800C local GSM delivery webhook"""
+        # Update delivery status based on local GSM module status
+        return {"status": "processed", "provider": "sim800c_local"}
     
     async def _process_sendgrid_webhook(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Process SendGrid delivery webhook"""

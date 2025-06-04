@@ -1,6 +1,6 @@
 """
 Real SMS Service Implementation
-Supports multiple SMS providers: Twilio, SMS.ru, SMSC.ru
+Supports multiple SMS providers: SMS.ru, SMSC.ru, Local GSM modules
 """
 
 import os
@@ -15,6 +15,7 @@ from sqlmodel import Session, select
 
 from database import get_session
 from models import SMSMessage, SMSStatus
+from local_gsm_sms_service import LocalGSMSMSService
 
 logger = structlog.get_logger(__name__)
 
@@ -25,50 +26,38 @@ class SMSProvider:
         """Send SMS and return result"""
         raise NotImplementedError
 
-class TwilioSMSProvider(SMSProvider):
-    """Twilio SMS provider"""
+class SIM800CSMSProvider(SMSProvider):
+    """Local SIM800C GSM module SMS provider"""
     
-    def __init__(self, account_sid: str, auth_token: str, from_number: str):
-        self.account_sid = account_sid
-        self.auth_token = auth_token
-        self.from_number = from_number
-        self.base_url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
+    def __init__(self):
+        self.gsm_service = LocalGSMSMSService()
     
     async def send_sms(self, phone_number: str, message: str) -> Dict[str, Any]:
-        """Send SMS via Twilio"""
+        """Send SMS via local SIM800C module"""
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self.base_url,
-                    auth=(self.account_sid, self.auth_token),
-                    data={
-                        'From': self.from_number,
-                        'To': phone_number,
-                        'Body': message
-                    }
-                )
-                
-                if response.status_code == 201:
-                    data = response.json()
-                    return {
-                        'success': True,
-                        'message_id': data.get('sid'),
-                        'status': data.get('status'),
-                        'provider': 'twilio'
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'error': f"Twilio error: {response.status_code} - {response.text}",
-                        'provider': 'twilio'
-                    }
+            result = await self.gsm_service.send_sms(phone_number, message)
+            
+            if result.get('success'):
+                return {
+                    'success': True,
+                    'message_id': result.get('message_id'),
+                    'status': 'sent',
+                    'provider': 'sim800c_local'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': result.get('error', 'Unknown SIM800C error'),
+                    'provider': 'sim800c_local'
+                }
         except Exception as e:
-            logger.error("Twilio SMS error", error=str(e))
+            logger.error("SIM800C SMS error", error=str(e))
             return {
                 'success': False,
-                'error': f"Twilio exception: {str(e)}",
-                'provider': 'twilio'
+                'error': f"SIM800C exception: {str(e)}",
+                'provider': 'sim800c_local'
             }
+
 
 class SMSRuProvider(SMSProvider):
     """SMS.ru provider"""
@@ -200,22 +189,19 @@ class RealSMSService:
     def _initialize_provider(self) -> SMSProvider:
         """Initialize SMS provider based on environment variables"""
         
-        # Check for Twilio credentials
-        twilio_sid = os.getenv('TWILIO_ACCOUNT_SID')
-        twilio_token = os.getenv('TWILIO_AUTH_TOKEN')
-        twilio_from = os.getenv('TWILIO_FROM_NUMBER')
+        # Priority 1: Check for local SIM800C modules
+        use_local_gsm = os.getenv('USE_LOCAL_GSM', 'true').lower() == 'true'
+        if use_local_gsm:
+            logger.info("Using local SIM800C GSM modules for SMS")
+            return SIM800CSMSProvider()
         
-        if twilio_sid and twilio_token and twilio_from:
-            logger.info("Using Twilio SMS provider")
-            return TwilioSMSProvider(twilio_sid, twilio_token, twilio_from)
-        
-        # Check for SMS.ru credentials
+        # Priority 2: Check for SMS.ru credentials
         sms_ru_api_id = os.getenv('SMS_RU_API_ID')
         if sms_ru_api_id:
             logger.info("Using SMS.ru provider")
             return SMSRuProvider(sms_ru_api_id)
         
-        # Check for SMSC.ru credentials
+        # Priority 3: Check for SMSC.ru credentials
         smsc_login = os.getenv('SMSC_LOGIN')
         smsc_password = os.getenv('SMSC_PASSWORD')
         if smsc_login and smsc_password:

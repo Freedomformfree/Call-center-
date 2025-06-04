@@ -1,10 +1,10 @@
 {
   "api_keys": {
-    "twilio": {
-      "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
-      "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
-      "phone_number": "YOUR_TWILIO_PHONE_NUMBER",
-      "description": "Twilio API for SMS and voice calls"
+    "local_gsm": {
+      "use_local_gsm": true,
+      "default_port": "/dev/ttyUSB0",
+      "default_baudrate": 9600,
+      "description": "Local SIM800C GSM modules for SMS and voice calls"
     },
     "openai": {
       "api_key": "YOUR_OPENAI_API_KEY",

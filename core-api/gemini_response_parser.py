@@ -1,658 +1,353 @@
 """
-Gemini Response Parser - Advanced parsing and interpretation of Gemini AI responses.
-
-This module provides sophisticated parsing capabilities for Gemini AI responses,
-including intent recognition, parameter extraction, tool action identification,
-and structured data extraction from natural language responses.
+Gemini Response Parser for AI Agent Tools
+Parses Gemini responses and extracts actionable tool operations
 """
 
 import re
 import json
 import logging
-from typing import Dict, List, Any, Optional, Union, Tuple
-from dataclasses import dataclass
-from enum import Enum
-from datetime import datetime, timedelta
-import structlog
+from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
 
-logger = structlog.get_logger(__name__)
-
-
-class IntentType(Enum):
-    """Types of user intents that can be recognized."""
-    TOOL_EXECUTION = "tool_execution"
-    INFORMATION_REQUEST = "information_request"
-    CONFIGURATION = "configuration"
-    WORKFLOW_CREATION = "workflow_creation"
-    TROUBLESHOOTING = "troubleshooting"
-    GENERAL_CHAT = "general_chat"
-
-
-class ConfidenceLevel(Enum):
-    """Confidence levels for parsed results."""
-    HIGH = "high"      # 0.8 - 1.0
-    MEDIUM = "medium"  # 0.5 - 0.8
-    LOW = "low"        # 0.0 - 0.5
-
-
-@dataclass
-class ParsedIntent:
-    """Parsed user intent from message."""
-    intent_type: IntentType
-    confidence: float
-    entities: Dict[str, Any]
-    context: Dict[str, Any]
-
-
-@dataclass
-class ParsedToolAction:
-    """Parsed tool action from response."""
-    tool_name: str
-    action: str
-    parameters: Dict[str, Any]
-    confidence: float
-    validation_errors: List[str]
-
-
-@dataclass
-class ParsedWorkflow:
-    """Parsed workflow definition."""
-    name: str
-    description: str
-    triggers: List[Dict[str, Any]]
-    steps: List[Dict[str, Any]]
-    conditions: List[Dict[str, Any]]
-    confidence: float
-
-
-@dataclass
-class ParsedResponse:
-    """Complete parsed response from Gemini."""
-    original_text: str
-    intent: ParsedIntent
-    tool_actions: List[ParsedToolAction]
-    workflows: List[ParsedWorkflow]
-    extracted_data: Dict[str, Any]
-    suggestions: List[str]
-    confidence: float
-    parsing_metadata: Dict[str, Any]
-
+logger = logging.getLogger(__name__)
 
 class GeminiResponseParser:
     """
-    Advanced parser for Gemini AI responses with intelligent interpretation.
-    
-    This parser can:
-    - Identify user intents and extract entities
-    - Parse tool actions with parameter validation
-    - Extract workflow definitions
-    - Recognize structured data patterns
-    - Provide confidence scores for all extractions
+    Parser for Gemini AI responses to extract tool operations and actions
     """
     
     def __init__(self):
-        """Initialize the response parser."""
-        self.intent_patterns = self._initialize_intent_patterns()
         self.tool_patterns = self._initialize_tool_patterns()
-        self.entity_extractors = self._initialize_entity_extractors()
-        self.workflow_patterns = self._initialize_workflow_patterns()
+        self.action_patterns = self._initialize_action_patterns()
         
-    def _initialize_intent_patterns(self) -> Dict[IntentType, List[Dict[str, Any]]]:
-        """Initialize patterns for intent recognition."""
+    def _initialize_tool_patterns(self) -> Dict[str, List[str]]:
+        """Initialize patterns for recognizing tool mentions"""
         return {
-            IntentType.TOOL_EXECUTION: [
-                {
-                    "patterns": [
-                        r"send.*email|email.*to|compose.*message",
-                        r"create.*event|schedule.*meeting|book.*appointment",
-                        r"upload.*file|save.*document|store.*file",
-                        r"send.*sms|text.*message|whatsapp.*message",
-                        r"post.*slack|message.*team|notify.*channel",
-                        r"create.*card|add.*task|new.*ticket"
-                    ],
-                    "confidence_boost": 0.2
-                },
-                {
-                    "patterns": [
-                        r"execute|run|perform|do|make|send|create|add|update|delete"
-                    ],
-                    "confidence_boost": 0.1
-                }
+            'call_automation': [
+                r'call\s+automation', r'automated\s+calling', r'call\s+workflows',
+                r'phone\s+automation', r'dialing\s+system'
             ],
-            IntentType.CONFIGURATION: [
-                {
-                    "patterns": [
-                        r"configure|setup|connect|integrate|install",
-                        r"api.*key|token|credentials|authentication",
-                        r"settings|preferences|options|parameters"
-                    ],
-                    "confidence_boost": 0.2
-                }
+            'sms_campaigns': [
+                r'sms\s+campaigns?', r'text\s+messaging', r'bulk\s+sms',
+                r'sms\s+automation', r'text\s+campaigns?'
             ],
-            IntentType.WORKFLOW_CREATION: [
-                {
-                    "patterns": [
-                        r"workflow|automation|process|sequence",
-                        r"when.*then|if.*then|trigger.*action",
-                        r"automate|automatic|auto.*run"
-                    ],
-                    "confidence_boost": 0.2
-                }
+            'analytics': [
+                r'analytics', r'performance\s+tracking', r'reporting',
+                r'metrics', r'dashboard', r'insights'
             ],
-            IntentType.INFORMATION_REQUEST: [
-                {
-                    "patterns": [
-                        r"what.*is|how.*to|can.*you|tell.*me",
-                        r"list|show|display|get|fetch|retrieve",
-                        r"status|info|information|details"
-                    ],
-                    "confidence_boost": 0.1
-                }
+            'lead_scoring': [
+                r'lead\s+scoring', r'lead\s+qualification', r'lead\s+ranking',
+                r'prospect\s+scoring', r'lead\s+prioritization'
             ],
-            IntentType.TROUBLESHOOTING: [
-                {
-                    "patterns": [
-                        r"error|problem|issue|bug|not.*working",
-                        r"fix|solve|resolve|debug|troubleshoot",
-                        r"failed|broken|wrong|incorrect"
-                    ],
-                    "confidence_boost": 0.2
-                }
+            'appointment_booking': [
+                r'appointment\s+booking', r'scheduling', r'calendar\s+booking',
+                r'meeting\s+scheduling', r'appointment\s+scheduling'
+            ],
+            'follow_up': [
+                r'follow[\-\s]?up', r'customer\s+follow[\-\s]?up', r'follow[\-\s]?up\s+automation',
+                r'nurturing', r'customer\s+retention'
             ]
         }
     
-    def _initialize_tool_patterns(self) -> Dict[str, Dict[str, Any]]:
-        """Initialize patterns for tool action recognition."""
+    def _initialize_action_patterns(self) -> Dict[str, List[str]]:
+        """Initialize patterns for recognizing actions"""
         return {
-            "gmail": {
-                "actions": {
-                    "send_email": {
-                        "patterns": [r"send.*email", r"email.*to", r"compose.*email"],
-                        "required_params": ["to", "subject", "body"],
-                        "optional_params": ["cc", "bcc", "attachments"]
-                    },
-                    "read_emails": {
-                        "patterns": [r"read.*email", r"check.*inbox", r"get.*messages"],
-                        "required_params": [],
-                        "optional_params": ["limit", "unread_only", "from_sender"]
-                    }
-                }
-            },
-            "calendar": {
-                "actions": {
-                    "create_event": {
-                        "patterns": [r"create.*event", r"schedule.*meeting", r"book.*appointment"],
-                        "required_params": ["title", "start_time", "end_time"],
-                        "optional_params": ["description", "attendees", "location"]
-                    },
-                    "list_events": {
-                        "patterns": [r"list.*events", r"show.*calendar", r"check.*schedule"],
-                        "required_params": [],
-                        "optional_params": ["date_range", "calendar_id"]
-                    }
-                }
-            },
-            "slack": {
-                "actions": {
-                    "send_message": {
-                        "patterns": [r"send.*slack", r"message.*team", r"post.*channel"],
-                        "required_params": ["channel", "text"],
-                        "optional_params": ["thread_ts", "attachments"]
-                    }
-                }
-            },
-            "whatsapp": {
-                "actions": {
-                    "send_message": {
-                        "patterns": [r"send.*whatsapp", r"whatsapp.*message"],
-                        "required_params": ["phone", "message"],
-                        "optional_params": ["media_url", "media_type"]
-                    }
-                }
-            },
-            "trello": {
-                "actions": {
-                    "create_card": {
-                        "patterns": [r"create.*card", r"add.*task", r"new.*ticket"],
-                        "required_params": ["board_id", "list_id", "name"],
-                        "optional_params": ["description", "due_date", "labels"]
-                    }
-                }
-            }
-        }
-    
-    def _initialize_entity_extractors(self) -> Dict[str, Dict[str, Any]]:
-        """Initialize entity extraction patterns."""
-        return {
-            "email": {
-                "pattern": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-                "type": "contact"
-            },
-            "phone": {
-                "pattern": r'\+?[\d\s\-\(\)]{10,}',
-                "type": "contact"
-            },
-            "url": {
-                "pattern": r'https?://[^\s]+',
-                "type": "resource"
-            },
-            "date": {
-                "pattern": r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b',
-                "type": "temporal"
-            },
-            "time": {
-                "pattern": r'\b\d{1,2}:\d{2}(?:\s*[AaPp][Mm])?\b',
-                "type": "temporal"
-            },
-            "money": {
-                "pattern": r'\$\d+(?:\.\d{2})?|\d+(?:\.\d{2})?\s*(?:USD|EUR|GBP)',
-                "type": "financial"
-            }
-        }
-    
-    def _initialize_workflow_patterns(self) -> Dict[str, List[str]]:
-        """Initialize workflow definition patterns."""
-        return {
-            "trigger_patterns": [
-                r"when\s+(.+?)\s+then",
-                r"if\s+(.+?)\s+then",
-                r"trigger:\s*(.+)",
-                r"on\s+(.+?)\s+do"
+            'create': [
+                r'create', r'build', r'set\s+up', r'establish', r'generate',
+                r'make', r'add', r'new', r'configure'
             ],
-            "action_patterns": [
-                r"then\s+(.+)",
-                r"do\s+(.+)",
-                r"action:\s*(.+)",
-                r"execute\s+(.+)"
+            'edit': [
+                r'edit', r'modify', r'update', r'change', r'adjust',
+                r'configure', r'customize', r'alter'
             ],
-            "condition_patterns": [
-                r"if\s+(.+?)\s+(?:then|do)",
-                r"when\s+(.+?)\s+(?:then|do)",
-                r"condition:\s*(.+)"
+            'delete': [
+                r'delete', r'remove', r'eliminate', r'disable', r'deactivate',
+                r'turn\s+off', r'stop', r'cancel'
+            ],
+            'connect': [
+                r'connect', r'link', r'integrate', r'chain', r'combine',
+                r'join', r'merge', r'tie\s+together', r'workflow'
+            ],
+            'analyze': [
+                r'analyze', r'suggest', r'recommend', r'review', r'assess',
+                r'evaluate', r'examine', r'study'
             ]
         }
     
-    async def parse_response(self, response_text: str, context: Dict[str, Any] = None) -> ParsedResponse:
+    def parse_response(self, user_message: str, gemini_response: str) -> Dict[str, Any]:
         """
-        Parse a Gemini response and extract structured information.
+        Parse Gemini response and extract tool operations
         
         Args:
-            response_text: The raw response text from Gemini
-            context: Optional context information
+            user_message: Original user message
+            gemini_response: Gemini AI response
             
         Returns:
-            ParsedResponse: Structured parsed response
+            Dict containing parsed operations and metadata
         """
-        start_time = datetime.utcnow()
-        
         try:
-            # Parse intent
-            intent = await self._parse_intent(response_text, context)
+            # Extract tool mentions
+            mentioned_tools = self._extract_tools(user_message + " " + gemini_response)
             
-            # Parse tool actions
-            tool_actions = await self._parse_tool_actions(response_text, context)
+            # Extract actions
+            detected_actions = self._extract_actions(user_message)
             
-            # Parse workflows
-            workflows = await self._parse_workflows(response_text, context)
+            # Extract tool connections
+            connections = self._extract_connections(user_message, gemini_response)
             
-            # Extract entities and structured data
-            extracted_data = await self._extract_entities(response_text)
+            # Extract configuration parameters
+            configurations = self._extract_configurations(gemini_response)
             
-            # Generate suggestions
-            suggestions = await self._generate_suggestions(response_text, intent, tool_actions)
+            # Determine primary operation
+            primary_operation = self._determine_primary_operation(detected_actions, mentioned_tools)
             
-            # Calculate overall confidence
-            confidence = self._calculate_overall_confidence(intent, tool_actions, workflows)
+            # Extract success indicators
+            success_indicators = self._extract_success_indicators(gemini_response)
             
-            parsing_time = (datetime.utcnow() - start_time).total_seconds()
+            # Parse structured data if present
+            structured_data = self._extract_structured_data(gemini_response)
             
-            parsed_response = ParsedResponse(
-                original_text=response_text,
-                intent=intent,
-                tool_actions=tool_actions,
-                workflows=workflows,
-                extracted_data=extracted_data,
-                suggestions=suggestions,
-                confidence=confidence,
-                parsing_metadata={
-                    "parsing_time": parsing_time,
-                    "context": context or {},
-                    "parser_version": "1.0.0"
+            return {
+                'success': True,
+                'timestamp': datetime.now().isoformat(),
+                'parsing_results': {
+                    'mentioned_tools': mentioned_tools,
+                    'detected_actions': detected_actions,
+                    'connections': connections,
+                    'configurations': configurations,
+                    'primary_operation': primary_operation,
+                    'success_indicators': success_indicators,
+                    'structured_data': structured_data
+                },
+                'actionable_items': self._generate_actionable_items(
+                    primary_operation, mentioned_tools, connections, configurations
+                ),
+                'metadata': {
+                    'user_message_length': len(user_message),
+                    'response_length': len(gemini_response),
+                    'tools_count': len(mentioned_tools),
+                    'actions_count': len(detected_actions),
+                    'connections_count': len(connections)
                 }
-            )
-            
-            logger.info("Parsed Gemini response",
-                       intent_type=intent.intent_type.value,
-                       tool_actions_count=len(tool_actions),
-                       workflows_count=len(workflows),
-                       confidence=confidence,
-                       parsing_time=parsing_time)
-            
-            return parsed_response
+            }
             
         except Exception as e:
-            logger.error("Failed to parse Gemini response", error=str(e))
-            
-            # Return minimal parsed response on error
-            return ParsedResponse(
-                original_text=response_text,
-                intent=ParsedIntent(
-                    intent_type=IntentType.GENERAL_CHAT,
-                    confidence=0.0,
-                    entities={},
-                    context={}
-                ),
-                tool_actions=[],
-                workflows=[],
-                extracted_data={},
-                suggestions=[],
-                confidence=0.0,
-                parsing_metadata={"error": str(e)}
-            )
+            logger.error(f"Error parsing Gemini response: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
     
-    async def _parse_intent(self, text: str, context: Dict[str, Any] = None) -> ParsedIntent:
-        """Parse user intent from text."""
-        text_lower = text.lower()
-        intent_scores = {}
-        
-        # Calculate scores for each intent type
-        for intent_type, pattern_groups in self.intent_patterns.items():
-            score = 0.0
-            
-            for pattern_group in pattern_groups:
-                for pattern in pattern_group["patterns"]:
-                    if re.search(pattern, text_lower):
-                        score += pattern_group.get("confidence_boost", 0.1)
-            
-            intent_scores[intent_type] = min(score, 1.0)
-        
-        # Find the highest scoring intent
-        if intent_scores:
-            best_intent = max(intent_scores, key=intent_scores.get)
-            confidence = intent_scores[best_intent]
-        else:
-            best_intent = IntentType.GENERAL_CHAT
-            confidence = 0.5
-        
-        # Extract entities relevant to the intent
-        entities = await self._extract_intent_entities(text, best_intent)
-        
-        return ParsedIntent(
-            intent_type=best_intent,
-            confidence=confidence,
-            entities=entities,
-            context=context or {}
-        )
-    
-    async def _parse_tool_actions(self, text: str, context: Dict[str, Any] = None) -> List[ParsedToolAction]:
-        """Parse tool actions from text."""
-        tool_actions = []
+    def _extract_tools(self, text: str) -> List[Dict[str, Any]]:
+        """Extract mentioned tools from text"""
+        mentioned_tools = []
         text_lower = text.lower()
         
-        # First, check for JSON-formatted tool actions
-        json_actions = self._extract_json_tool_actions(text)
-        if json_actions:
-            for action_data in json_actions:
-                validation_errors = self._validate_tool_action(action_data)
-                tool_actions.append(ParsedToolAction(
-                    tool_name=action_data.get("tool_name", ""),
-                    action=action_data.get("action", ""),
-                    parameters=action_data.get("parameters", {}),
-                    confidence=action_data.get("confidence", 0.9),
-                    validation_errors=validation_errors
-                ))
+        for tool_name, patterns in self.tool_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, text_lower):
+                    mentioned_tools.append({
+                        'name': tool_name,
+                        'display_name': tool_name.replace('_', ' ').title(),
+                        'pattern_matched': pattern,
+                        'confidence': 0.8
+                    })
+                    break  # Only add each tool once
         
-        # Then, use pattern matching for natural language
-        for tool_name, tool_config in self.tool_patterns.items():
-            for action_name, action_config in tool_config["actions"].items():
-                for pattern in action_config["patterns"]:
-                    if re.search(pattern, text_lower):
-                        # Extract parameters
-                        parameters = await self._extract_action_parameters(
-                            text, action_config["required_params"] + action_config["optional_params"]
-                        )
-                        
-                        # Validate parameters
-                        validation_errors = []
-                        for required_param in action_config["required_params"]:
-                            if required_param not in parameters:
-                                validation_errors.append(f"Missing required parameter: {required_param}")
-                        
-                        confidence = 0.8 if not validation_errors else 0.5
-                        
-                        tool_actions.append(ParsedToolAction(
-                            tool_name=tool_name,
-                            action=action_name,
-                            parameters=parameters,
-                            confidence=confidence,
-                            validation_errors=validation_errors
-                        ))
-                        break
-        
-        return tool_actions
+        return mentioned_tools
     
-    def _extract_json_tool_actions(self, text: str) -> List[Dict[str, Any]]:
-        """Extract JSON-formatted tool actions from text."""
-        actions = []
+    def _extract_actions(self, text: str) -> List[Dict[str, Any]]:
+        """Extract actions from text"""
+        detected_actions = []
+        text_lower = text.lower()
         
-        # Look for JSON blocks
-        json_pattern = r'```json\s*(\{.*?\})\s*```'
-        json_matches = re.findall(json_pattern, text, re.DOTALL)
+        for action_name, patterns in self.action_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, text_lower):
+                    detected_actions.append({
+                        'action': action_name,
+                        'pattern_matched': pattern,
+                        'confidence': 0.9
+                    })
+                    break  # Only add each action once
         
-        for json_str in json_matches:
-            try:
-                data = json.loads(json_str)
-                if "tool_actions" in data:
-                    actions.extend(data["tool_actions"])
-                elif "tool_name" in data:  # Single action
-                    actions.append(data)
-            except json.JSONDecodeError:
-                continue
-        
-        # Also look for inline JSON
-        inline_pattern = r'\{[^{}]*"tool_name"[^{}]*\}'
-        inline_matches = re.findall(inline_pattern, text)
-        
-        for json_str in inline_matches:
-            try:
-                data = json.loads(json_str)
-                actions.append(data)
-            except json.JSONDecodeError:
-                continue
-        
-        return actions
+        return detected_actions
     
-    def _validate_tool_action(self, action_data: Dict[str, Any]) -> List[str]:
-        """Validate a tool action data structure."""
-        errors = []
+    def _extract_connections(self, user_message: str, gemini_response: str) -> List[Dict[str, Any]]:
+        """Extract tool connections from messages"""
+        connections = []
+        combined_text = user_message + " " + gemini_response
+        text_lower = combined_text.lower()
         
-        if not action_data.get("tool_name"):
-            errors.append("Missing tool_name")
-        
-        if not action_data.get("action"):
-            errors.append("Missing action")
-        
-        tool_name = action_data.get("tool_name")
-        action_name = action_data.get("action")
-        
-        if tool_name in self.tool_patterns:
-            tool_config = self.tool_patterns[tool_name]
-            if action_name in tool_config["actions"]:
-                action_config = tool_config["actions"][action_name]
-                parameters = action_data.get("parameters", {})
-                
-                for required_param in action_config["required_params"]:
-                    if required_param not in parameters:
-                        errors.append(f"Missing required parameter: {required_param}")
-        
-        return errors
-    
-    async def _extract_action_parameters(self, text: str, param_names: List[str]) -> Dict[str, Any]:
-        """Extract action parameters from text."""
-        parameters = {}
-        
-        # Extract entities first
-        entities = await self._extract_entities(text)
-        
-        # Map entities to parameters
-        for param_name in param_names:
-            if param_name in ["to", "email"] and "emails" in entities:
-                parameters[param_name] = entities["emails"][0] if entities["emails"] else None
-            elif param_name in ["phone", "number"] and "phones" in entities:
-                parameters[param_name] = entities["phones"][0] if entities["phones"] else None
-            elif param_name in ["url", "link"] and "urls" in entities:
-                parameters[param_name] = entities["urls"][0] if entities["urls"] else None
-            elif param_name in ["date", "start_date", "end_date"] and "dates" in entities:
-                parameters[param_name] = entities["dates"][0] if entities["dates"] else None
-            elif param_name in ["time", "start_time", "end_time"] and "times" in entities:
-                parameters[param_name] = entities["times"][0] if entities["times"] else None
-        
-        # Extract specific patterns
-        if "subject" in param_names or "title" in param_names:
-            subject_pattern = r'(?:subject|title):\s*([^\n]+)'
-            subjects = re.findall(subject_pattern, text, re.IGNORECASE)
-            if subjects:
-                key = "subject" if "subject" in param_names else "title"
-                parameters[key] = subjects[0].strip()
-        
-        if "body" in param_names or "message" in param_names or "text" in param_names:
-            # Look for quoted text or text after keywords
-            body_patterns = [
-                r'(?:body|message|text):\s*"([^"]+)"',
-                r'(?:body|message|text):\s*([^\n]+)',
-                r'"([^"]+)"'  # Any quoted text
-            ]
-            
-            for pattern in body_patterns:
-                matches = re.findall(pattern, text, re.IGNORECASE)
-                if matches:
-                    key = next((p for p in ["body", "message", "text"] if p in param_names), "body")
-                    parameters[key] = matches[0].strip()
-                    break
-        
-        return parameters
-    
-    async def _parse_workflows(self, text: str, context: Dict[str, Any] = None) -> List[ParsedWorkflow]:
-        """Parse workflow definitions from text."""
-        workflows = []
-        
-        # Look for workflow indicators
-        workflow_indicators = [
-            r"workflow|automation|process",
-            r"when.*then|if.*then",
-            r"trigger.*action"
+        # Look for connection patterns
+        connection_patterns = [
+            r'connect\s+(\w+(?:\s+\w+)*)\s+to\s+(\w+(?:\s+\w+)*)',
+            r'link\s+(\w+(?:\s+\w+)*)\s+with\s+(\w+(?:\s+\w+)*)',
+            r'(\w+(?:\s+\w+)*)\s+→\s+(\w+(?:\s+\w+)*)',
+            r'(\w+(?:\s+\w+)*)\s+->\s+(\w+(?:\s+\w+)*)',
+            r'chain\s+(\w+(?:\s+\w+)*)\s+and\s+(\w+(?:\s+\w+)*)'
         ]
         
-        has_workflow = any(re.search(pattern, text.lower()) for pattern in workflow_indicators)
-        
-        if not has_workflow:
-            return workflows
-        
-        # Extract workflow components
-        triggers = []
-        steps = []
-        conditions = []
-        
-        # Extract triggers
-        for pattern in self.workflow_patterns["trigger_patterns"]:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        for pattern in connection_patterns:
+            matches = re.finditer(pattern, text_lower)
             for match in matches:
-                triggers.append({"type": "event", "condition": match.strip()})
+                source_tool = match.group(1).strip()
+                target_tool = match.group(2).strip()
+                
+                connections.append({
+                    'source_tool': source_tool,
+                    'target_tool': target_tool,
+                    'connection_type': 'workflow',
+                    'pattern_matched': pattern,
+                    'confidence': 0.85
+                })
         
-        # Extract actions/steps
-        for pattern in self.workflow_patterns["action_patterns"]:
-            matches = re.findall(pattern, text, re.IGNORECASE)
+        return connections
+    
+    def _extract_configurations(self, text: str) -> Dict[str, Any]:
+        """Extract configuration parameters from text"""
+        configurations = {}
+        
+        # Look for configuration patterns
+        config_patterns = {
+            'threshold': r'threshold[:\s]+(\d+(?:\.\d+)?)',
+            'timing': r'(?:within|after|every)\s+(\d+)\s+(minutes?|hours?|days?)',
+            'score': r'score[:\s]+(\d+(?:\.\d+)?)',
+            'percentage': r'(\d+(?:\.\d+)?)%',
+            'temperature': r'temperature[:\s]+(\d+(?:\.\d+)?)',
+            'max_tokens': r'(?:max[_\s]?tokens?|token[_\s]?limit)[:\s]+(\d+)'
+        }
+        
+        text_lower = text.lower()
+        for config_name, pattern in config_patterns.items():
+            matches = re.finditer(pattern, text_lower)
             for match in matches:
-                steps.append({"type": "action", "description": match.strip()})
+                configurations[config_name] = match.group(1)
         
-        # Extract conditions
-        for pattern in self.workflow_patterns["condition_patterns"]:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            for match in matches:
-                conditions.append({"type": "condition", "expression": match.strip()})
-        
-        if triggers or steps:
-            workflows.append(ParsedWorkflow(
-                name="Extracted Workflow",
-                description="Workflow extracted from user message",
-                triggers=triggers,
-                steps=steps,
-                conditions=conditions,
-                confidence=0.7 if triggers and steps else 0.5
-            ))
-        
-        return workflows
+        return configurations
     
-    async def _extract_entities(self, text: str) -> Dict[str, List[str]]:
-        """Extract entities from text using regex patterns."""
-        entities = {}
+    def _determine_primary_operation(self, actions: List[Dict], tools: List[Dict]) -> Optional[Dict[str, Any]]:
+        """Determine the primary operation from detected actions and tools"""
+        if not actions:
+            return None
         
-        for entity_name, entity_config in self.entity_extractors.items():
-            matches = re.findall(entity_config["pattern"], text)
-            if matches:
-                entities[f"{entity_name}s"] = matches
+        # Priority order for actions
+        action_priority = ['create', 'connect', 'edit', 'delete', 'analyze']
         
-        return entities
+        for priority_action in action_priority:
+            for action in actions:
+                if action['action'] == priority_action:
+                    return {
+                        'action': priority_action,
+                        'tools_involved': [tool['name'] for tool in tools],
+                        'confidence': action['confidence']
+                    }
+        
+        return actions[0] if actions else None
     
-    async def _extract_intent_entities(self, text: str, intent_type: IntentType) -> Dict[str, Any]:
-        """Extract entities specific to the identified intent."""
-        entities = {}
+    def _extract_success_indicators(self, text: str) -> List[str]:
+        """Extract success indicators from response"""
+        success_patterns = [
+            r'✅', r'successfully', r'completed', r'created', r'configured',
+            r'established', r'connected', r'activated', r'enabled'
+        ]
         
-        # Get general entities
-        general_entities = await self._extract_entities(text)
-        entities.update(general_entities)
+        indicators = []
+        text_lower = text.lower()
         
-        # Add intent-specific entities
-        if intent_type == IntentType.TOOL_EXECUTION:
-            # Extract tool names mentioned
-            tool_names = []
-            for tool_name in self.tool_patterns.keys():
-                if tool_name.lower() in text.lower():
-                    tool_names.append(tool_name)
-            if tool_names:
-                entities["mentioned_tools"] = tool_names
+        for pattern in success_patterns:
+            if re.search(pattern, text_lower):
+                indicators.append(pattern)
         
-        elif intent_type == IntentType.CONFIGURATION:
-            # Extract configuration-related terms
-            config_terms = re.findall(r'\b(?:api|key|token|secret|credential|setting|config)\b', text.lower())
-            if config_terms:
-                entities["config_terms"] = list(set(config_terms))
-        
-        return entities
+        return indicators
     
-    async def _generate_suggestions(self, text: str, intent: ParsedIntent, tool_actions: List[ParsedToolAction]) -> List[str]:
-        """Generate helpful suggestions based on parsed content."""
-        suggestions = []
-        
-        # Suggest missing parameters for tool actions
-        for action in tool_actions:
-            if action.validation_errors:
-                suggestions.append(f"To execute {action.tool_name} {action.action}, please provide: {', '.join(action.validation_errors)}")
-        
-        # Suggest related tools based on intent
-        if intent.intent_type == IntentType.TOOL_EXECUTION and not tool_actions:
-            suggestions.append("I can help you with various tools like Gmail, Calendar, Slack, WhatsApp, and more. What would you like to do?")
-        
-        # Suggest workflow creation for complex requests
-        if len(tool_actions) > 1:
-            suggestions.append("You can create an automated workflow to combine these actions. Would you like me to help set that up?")
-        
-        return suggestions
+    def _extract_structured_data(self, text: str) -> Optional[Dict[str, Any]]:
+        """Extract structured data (JSON, tables, etc.) from response"""
+        try:
+            # Look for JSON blocks
+            json_pattern = r'```json\s*(.*?)\s*```'
+            json_matches = re.finditer(json_pattern, text, re.DOTALL)
+            
+            for match in json_matches:
+                try:
+                    json_data = json.loads(match.group(1))
+                    return {'type': 'json', 'data': json_data}
+                except json.JSONDecodeError:
+                    continue
+            
+            # Look for configuration blocks
+            config_pattern = r'\*\*Configuration:\*\*(.*?)(?=\*\*|$)'
+            config_matches = re.finditer(config_pattern, text, re.DOTALL)
+            
+            for match in config_matches:
+                config_text = match.group(1).strip()
+                return {'type': 'configuration', 'data': config_text}
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error extracting structured data: {e}")
+            return None
     
-    def _calculate_overall_confidence(self, intent: ParsedIntent, tool_actions: List[ParsedToolAction], workflows: List[ParsedWorkflow]) -> float:
-        """Calculate overall confidence score for the parsed response."""
-        scores = [intent.confidence]
+    def _generate_actionable_items(self, primary_operation: Optional[Dict], 
+                                 tools: List[Dict], connections: List[Dict], 
+                                 configurations: Dict) -> List[Dict[str, Any]]:
+        """Generate actionable items based on parsed data"""
+        actionable_items = []
         
-        if tool_actions:
-            action_scores = [action.confidence for action in tool_actions]
-            scores.extend(action_scores)
+        if primary_operation:
+            action = primary_operation['action']
+            
+            if action == 'create' and tools:
+                for tool in tools:
+                    actionable_items.append({
+                        'type': 'create_tool',
+                        'tool_name': tool['name'],
+                        'description': f"Create {tool['display_name']} tool",
+                        'priority': 'high',
+                        'estimated_time': '15-30 minutes'
+                    })
+            
+            elif action == 'connect' and connections:
+                for connection in connections:
+                    actionable_items.append({
+                        'type': 'create_connection',
+                        'source_tool': connection['source_tool'],
+                        'target_tool': connection['target_tool'],
+                        'description': f"Connect {connection['source_tool']} to {connection['target_tool']}",
+                        'priority': 'medium',
+                        'estimated_time': '10-20 minutes'
+                    })
+            
+            elif action == 'edit' and tools:
+                for tool in tools:
+                    actionable_items.append({
+                        'type': 'edit_tool',
+                        'tool_name': tool['name'],
+                        'description': f"Edit {tool['display_name']} configuration",
+                        'priority': 'medium',
+                        'estimated_time': '5-15 minutes'
+                    })
+            
+            elif action == 'delete' and tools:
+                for tool in tools:
+                    actionable_items.append({
+                        'type': 'delete_tool',
+                        'tool_name': tool['name'],
+                        'description': f"Delete {tool['display_name']} tool",
+                        'priority': 'low',
+                        'estimated_time': '2-5 minutes'
+                    })
         
-        if workflows:
-            workflow_scores = [workflow.confidence for workflow in workflows]
-            scores.extend(workflow_scores)
-        
-        return sum(scores) / len(scores) if scores else 0.0
-
-
-# Global parser instance
-gemini_response_parser = GeminiResponseParser()
+        return actionable_items
+    
+    def get_parsing_statistics(self) -> Dict[str, Any]:
+        """Get statistics about parsing capabilities"""
+        return {
+            'supported_tools': list(self.tool_patterns.keys()),
+            'supported_actions': list(self.action_patterns.keys()),
+            'total_patterns': sum(len(patterns) for patterns in self.tool_patterns.values()) + 
+                            sum(len(patterns) for patterns in self.action_patterns.values()),
+            'version': '1.0.0'
+        }

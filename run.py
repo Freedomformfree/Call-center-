@@ -129,27 +129,30 @@ def clean_project():
     return True
 
 def start_server():
-    """Start the Coffee Web App server"""
-    logger.info("☕ Starting VoiceConnect Pro Coffee Web App...")
+    """Start the Comprehensive Coffee Web App server"""
+    logger.info("☕ Starting VoiceConnect Pro Comprehensive Coffee Web App...")
     
-    # Use our working coffee web app
-    coffee_app = "core-api/coffee_web_app.py"
+    # Use our comprehensive coffee web app with all business features
+    comprehensive_app = "core-api/comprehensive_coffee_web_app.py"
     
-    if not Path(coffee_app).exists():
-        logger.error("❌ Coffee web app not found")
+    if not Path(comprehensive_app).exists():
+        logger.error("❌ Comprehensive coffee web app not found")
         return False
     
     # Change to the correct directory
     os.chdir("core-api")
     
     # Start the server
-    logger.info("🌐 Starting Coffee Paper Theme server")
+    logger.info("🌐 Starting Comprehensive Coffee Paper Theme server")
     logger.info("📱 Frontend will be available at: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev")
     logger.info("🔐 Login page: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/login")
-    logger.info("🤖 AI Tools Dashboard: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/dashboard")
+    logger.info("🤖 Dashboard: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/dashboard")
+    logger.info("📞 Phone Assignment: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/phone-assignment")
+    logger.info("💼 Subscription: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/subscription")
+    logger.info("🤖 AI Tools: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/ai-tools")
     
-    # Run the coffee web app
-    os.system("python coffee_web_app.py")
+    # Run the comprehensive coffee web app
+    os.system("python comprehensive_coffee_web_app.py")
     
     return True
 

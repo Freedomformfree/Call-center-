@@ -6,7 +6,7 @@
     <title>☕ Login - VoiceConnect Pro</title>
     
     <!-- Coffee Paper Theme -->
-    <link rel="stylesheet" href="coffee-paper-theme.css">
+    <link rel="stylesheet" href="/static/coffee-paper-theme.css">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Helvetica+Neue:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -15,6 +15,18 @@
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
 </head>
 <body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <div class="language-btn" onclick="toggleLanguageMenu()" title="Select Language">
+            🌐 <span id="current-lang">EN</span>
+        </div>
+        <div class="language-menu" id="language-menu">
+            <div class="language-option" onclick="changeLanguage('en')">🇺🇸 English</div>
+            <div class="language-option" onclick="changeLanguage('ru')">🇷🇺 Русский</div>
+            <div class="language-option" onclick="changeLanguage('uz')">🇺🇿 O'zbek</div>
+        </div>
+    </div>
+    
     <!-- Coffee Navigation -->
     <nav class="coffee-nav">
         <ul class="coffee-nav-list">
@@ -322,6 +334,99 @@
                     }
                 }
                 type();
+            }
+        });
+
+        // Language functionality
+        let currentLanguage = 'en';
+        
+        function toggleLanguageMenu() {
+            const menu = document.getElementById('language-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            
+            // Update current language display
+            const currentLangSpan = document.getElementById('current-lang');
+            const langMap = {
+                'en': 'EN',
+                'ru': 'RU', 
+                'uz': 'UZ'
+            };
+            currentLangSpan.textContent = langMap[lang];
+            
+            // Hide menu
+            document.getElementById('language-menu').style.display = 'none';
+            
+            // Apply translations
+            if (lang === 'ru') {
+                translateToRussian();
+            } else if (lang === 'uz') {
+                translateToUzbek();
+            } else {
+                translateToEnglish();
+            }
+        }
+
+        function translateToRussian() {
+            const translations = {
+                'Welcome Back': 'Добро Пожаловать',
+                'Sign in to your VoiceConnect Pro account': 'Войдите в свой аккаунт VoiceConnect Pro',
+                'Email Address': 'Адрес Электронной Почты',
+                'Password': 'Пароль',
+                'Sign In': 'Войти',
+                'Remember me': 'Запомнить меня',
+                'Forgot password?': 'Забыли пароль?',
+                '← Back to Home': '← Назад на Главную',
+                'Enter your email': 'Введите ваш email',
+                'Enter your password': 'Введите ваш пароль'
+            };
+            applyTranslations(translations);
+        }
+
+        function translateToUzbek() {
+            const translations = {
+                'Welcome Back': 'Xush Kelibsiz',
+                'Sign in to your VoiceConnect Pro account': 'VoiceConnect Pro hisobingizga kiring',
+                'Email Address': 'Elektron Pochta Manzili',
+                'Password': 'Parol',
+                'Sign In': 'Kirish',
+                'Remember me': 'Meni eslab qol',
+                'Forgot password?': 'Parolni unutdingizmi?',
+                '← Back to Home': '← Bosh Sahifaga Qaytish',
+                'Enter your email': 'Emailingizni kiriting',
+                'Enter your password': 'Parolingizni kiriting'
+            };
+            applyTranslations(translations);
+        }
+
+        function translateToEnglish() {
+            location.reload();
+        }
+
+        function applyTranslations(translations) {
+            Object.keys(translations).forEach(english => {
+                const elements = document.querySelectorAll('*');
+                elements.forEach(element => {
+                    if (element.children.length === 0 && element.textContent.trim() === english) {
+                        element.textContent = translations[english];
+                    }
+                    // Also translate placeholders
+                    if (element.placeholder === english) {
+                        element.placeholder = translations[english];
+                    }
+                });
+            });
+        }
+
+        // Close language menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const languageSelector = document.querySelector('.language-selector');
+            if (!languageSelector.contains(event.target)) {
+                document.getElementById('language-menu').style.display = 'none';
             }
         });
     </script>

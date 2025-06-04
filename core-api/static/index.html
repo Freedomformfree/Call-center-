@@ -17,7 +17,7 @@
     <title>☕ VoiceConnect Pro - Minimalistic AI Call Center</title>
     
     <!-- Coffee Paper Theme -->
-    <link rel="stylesheet" href="coffee-paper-theme.css">
+    <link rel="stylesheet" href="/static/coffee-paper-theme.css">
     
     <!-- Fonts with display=swap for better performance -->
     <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Helvetica+Neue:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -26,6 +26,18 @@
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
 </head>
 <body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <div class="language-btn" onclick="toggleLanguageMenu()" title="Select Language">
+            🌐 <span id="current-lang">EN</span>
+        </div>
+        <div class="language-menu" id="language-menu">
+            <div class="language-option" onclick="changeLanguage('en')">🇺🇸 English</div>
+            <div class="language-option" onclick="changeLanguage('ru')">🇷🇺 Русский</div>
+            <div class="language-option" onclick="changeLanguage('uz')">🇺🇿 O'zbek</div>
+        </div>
+    </div>
+    
     <!-- Coffee Navigation -->
     <nav class="coffee-nav">
         <ul class="coffee-nav-list">
@@ -328,6 +340,107 @@
             if (title) {
                 const originalText = title.textContent;
                 typeWriter(title, originalText, 150);
+            }
+        });
+
+        // Language functionality
+        let currentLanguage = 'en';
+        
+        function toggleLanguageMenu() {
+            const menu = document.getElementById('language-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            
+            // Update current language display
+            const currentLangSpan = document.getElementById('current-lang');
+            const langMap = {
+                'en': 'EN',
+                'ru': 'RU', 
+                'uz': 'UZ'
+            };
+            currentLangSpan.textContent = langMap[lang];
+            
+            // Hide menu
+            document.getElementById('language-menu').style.display = 'none';
+            
+            // Apply translations
+            if (lang === 'ru') {
+                translateToRussian();
+            } else if (lang === 'uz') {
+                translateToUzbek();
+            } else {
+                translateToEnglish();
+            }
+        }
+
+        function translateToRussian() {
+            const translations = {
+                'VoiceConnect Pro': 'VoiceConnect Pro',
+                'AI Business Automation Platform': 'Платформа Автоматизации Бизнеса ИИ',
+                'Get Your Free 30-Minute AI Business Consultation': 'Получите Бесплатную 30-Минутную Консультацию ИИ',
+                'Sign up now and receive a dedicated phone number for instant AI-powered business analysis': 'Зарегистрируйтесь сейчас и получите выделенный номер телефона для мгновенного анализа бизнеса с помощью ИИ',
+                'Get Started Free': 'Начать Бесплатно',
+                'Already have an account?': 'Уже есть аккаунт?',
+                'Sign In': 'Войти',
+                'How It Works': 'Как Это Работает',
+                'Sign Up': 'Регистрация',
+                'Get your account and dedicated phone number': 'Получите свой аккаунт и выделенный номер телефона',
+                'AI Consultation': 'ИИ Консультация',
+                'Call for 30-minute business analysis': 'Звоните для 30-минутного анализа бизнеса',
+                'Tool Recommendations': 'Рекомендации Инструментов',
+                'Receive personalized AI tool suggestions': 'Получите персонализированные предложения инструментов ИИ',
+                'Subscribe & Automate': 'Подписаться и Автоматизировать',
+                '$20/month for full tool access': '$20/месяц за полный доступ к инструментам'
+            };
+            applyTranslations(translations);
+        }
+
+        function translateToUzbek() {
+            const translations = {
+                'VoiceConnect Pro': 'VoiceConnect Pro',
+                'AI Business Automation Platform': 'AI Biznes Avtomatlashtirish Platformasi',
+                'Get Your Free 30-Minute AI Business Consultation': 'Bepul 30 Daqiqalik AI Biznes Maslahatini Oling',
+                'Sign up now and receive a dedicated phone number for instant AI-powered business analysis': 'Hozir ro\'yxatdan o\'ting va AI yordamida biznes tahlili uchun maxsus telefon raqamini oling',
+                'Get Started Free': 'Bepul Boshlash',
+                'Already have an account?': 'Hisobingiz bormi?',
+                'Sign In': 'Kirish',
+                'How It Works': 'Qanday Ishlaydi',
+                'Sign Up': 'Ro\'yxatdan O\'tish',
+                'Get your account and dedicated phone number': 'Hisobingiz va maxsus telefon raqamingizni oling',
+                'AI Consultation': 'AI Maslahat',
+                'Call for 30-minute business analysis': '30 daqiqalik biznes tahlili uchun qo\'ng\'iroq qiling',
+                'Tool Recommendations': 'Vosita Tavsiyalari',
+                'Receive personalized AI tool suggestions': 'Shaxsiy AI vosita takliflarini oling',
+                'Subscribe & Automate': 'Obuna Bo\'lish va Avtomatlashtirish',
+                '$20/month for full tool access': 'Barcha vositalarga kirish uchun oyiga $20'
+            };
+            applyTranslations(translations);
+        }
+
+        function translateToEnglish() {
+            location.reload();
+        }
+
+        function applyTranslations(translations) {
+            Object.keys(translations).forEach(english => {
+                const elements = document.querySelectorAll('*');
+                elements.forEach(element => {
+                    if (element.children.length === 0 && element.textContent.trim() === english) {
+                        element.textContent = translations[english];
+                    }
+                });
+            });
+        }
+
+        // Close language menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const languageSelector = document.querySelector('.language-selector');
+            if (!languageSelector.contains(event.target)) {
+                document.getElementById('language-menu').style.display = 'none';
             }
         });
     </script>

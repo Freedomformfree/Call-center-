@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="click-payment.css">
+    <link rel="stylesheet" href="gemini-chat.css">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body class="dashboard-body">
@@ -20,6 +21,7 @@
             <nav class="dashboard-nav">
                 <a href="#overview" class="nav-item active" data-section="overview">Overview</a>
                 <a href="#tools" class="nav-item" data-section="tools">AI Tools</a>
+                <a href="#gemini-chat" class="nav-item" data-section="gemini-chat">Gemini Chat</a>
                 <a href="#connections" class="nav-item" data-section="connections">Connections</a>
                 <a href="#analytics" class="nav-item" data-section="analytics">Analytics</a>
                 <a href="#settings" class="nav-item" data-section="settings">Settings</a>
@@ -144,6 +146,83 @@
                             <button class="btn-primary" onclick="saveToolConfiguration()">Save Configuration</button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gemini Chat Section -->
+        <section id="gemini-chat" class="dashboard-section">
+            <div class="section-header">
+                <h1>Gemini AI Assistant</h1>
+                <div class="chat-controls">
+                    <select id="chatContext" class="context-select">
+                        <option value="ai_tools_manager">AI Tools Manager</option>
+                        <option value="workflow_builder">Workflow Builder</option>
+                        <option value="troubleshooter">Troubleshooter</option>
+                    </select>
+                    <button class="btn-secondary" onclick="startNewChatSession()">New Session</button>
+                    <button class="btn-danger" onclick="clearCurrentSession()">Clear Chat</button>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <!-- Chat Messages Area -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <div class="assistant-avatar">🤖</div>
+                        <div class="message-content">
+                            <h3>Welcome to Gemini AI Assistant!</h3>
+                            <p>I'm here to help you manage your AI tools, create workflows, and automate your business processes. What would you like to do today?</p>
+                            <div class="quick-suggestions">
+                                <button class="suggestion-btn" onclick="sendQuickMessage('Show me available tools')">Show Available Tools</button>
+                                <button class="suggestion-btn" onclick="sendQuickMessage('Create a workflow')">Create Workflow</button>
+                                <button class="suggestion-btn" onclick="sendQuickMessage('Send an email')">Send Email</button>
+                                <button class="suggestion-btn" onclick="sendQuickMessage('Schedule a meeting')">Schedule Meeting</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <textarea 
+                            id="chatInput" 
+                            placeholder="Type your message here... (Press Ctrl+Enter to send)"
+                            rows="3"
+                            onkeydown="handleChatKeydown(event)"
+                        ></textarea>
+                        <div class="chat-input-actions">
+                            <label class="auto-execute-toggle">
+                                <input type="checkbox" id="autoExecuteTools" checked>
+                                <span>Auto-execute tools</span>
+                            </label>
+                            <button class="btn-primary send-btn" onclick="sendChatMessage()" id="sendButton">
+                                <span class="send-icon">➤</span>
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tool Actions Panel -->
+            <div class="tool-actions-panel" id="toolActionsPanel">
+                <h3>Detected Tool Actions</h3>
+                <div class="tool-actions-list" id="toolActionsList">
+                    <!-- Tool actions will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Chat Session Info -->
+            <div class="chat-session-info" id="chatSessionInfo">
+                <div class="session-status">
+                    <span class="status-indicator">●</span>
+                    <span id="sessionStatus">No active session</span>
+                </div>
+                <div class="session-details">
+                    <span id="sessionId">-</span>
+                    <span id="messageCount">0 messages</span>
                 </div>
             </div>
         </section>
@@ -342,6 +421,7 @@
     <script src="dashboard.js"></script>
     <script src="workflow-builder.js"></script>
     <script src="click-payment.js"></script>
+    <script src="gemini-chat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

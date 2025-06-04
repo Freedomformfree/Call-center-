@@ -20,7 +20,7 @@ class APIKeysConfig:
         self.vonage_api_secret: Optional[str] = os.getenv('VONAGE_API_SECRET')
         
         # Business Intelligence APIs
-        self.openai_api_key: Optional[str] = os.getenv('OPENAI_API_KEY')
+        self.gemini_api_key: Optional[str] = os.getenv('GEMINI_API_KEY')
         self.anthropic_api_key: Optional[str] = os.getenv('ANTHROPIC_API_KEY')
         
         # CRM & Business APIs

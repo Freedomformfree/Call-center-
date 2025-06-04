@@ -259,6 +259,10 @@ app.include_router(get_telegram_router(), prefix="/api/v1")
 from click_endpoints import router as click_router
 app.include_router(click_router)
 
+# Include Gemini chat router
+from gemini_chat_api import router as gemini_chat_router
+app.include_router(gemini_chat_router)
+
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

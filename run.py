@@ -82,7 +82,6 @@ DEBUG=True
 SECRET_KEY=your-secret-key-here
 DATABASE_URL=sqlite:///./voiceconnect.db
 GEMINI_API_KEY=your-gemini-api-key
-OPENAI_API_KEY=your-openai-api-key
 TWILIO_ACCOUNT_SID=your-twilio-sid
 TWILIO_AUTH_TOKEN=your-twilio-token
 SMTP_SERVER=smtp.gmail.com
@@ -130,42 +129,27 @@ def clean_project():
     return True
 
 def start_server():
-    """Start the FastAPI server"""
-    logger.info("🚀 Starting VoiceConnect Pro server...")
+    """Start the Coffee Web App server"""
+    logger.info("☕ Starting VoiceConnect Pro Coffee Web App...")
     
-    # Find the main application file
-    main_files = ["core-api/main.py", "main.py", "app.py", "core-api/app.py"]
-    main_file = None
+    # Use our working coffee web app
+    coffee_app = "core-api/coffee_web_app.py"
     
-    for file in main_files:
-        if Path(file).exists():
-            main_file = file
-            break
-    
-    if not main_file:
-        logger.error("❌ No main application file found")
+    if not Path(coffee_app).exists():
+        logger.error("❌ Coffee web app not found")
         return False
     
     # Change to the correct directory
-    if main_file.startswith("core-api/"):
-        os.chdir("core-api")
-        main_file = main_file.replace("core-api/", "")
+    os.chdir("core-api")
     
     # Start the server
-    logger.info(f"🌐 Starting server from {main_file}")
+    logger.info("🌐 Starting Coffee Paper Theme server")
     logger.info("📱 Frontend will be available at: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev")
-    logger.info("📊 Dashboard will be available at: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/dashboard")
-    logger.info("📚 API docs will be available at: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/docs")
+    logger.info("🔐 Login page: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/login")
+    logger.info("🤖 AI Tools Dashboard: https://work-1-uojdozitopihokid.prod-runtime.all-hands.dev/dashboard")
     
-    # Run the server
-    cmd = f"python {main_file}"
-    if "uvicorn" in open(main_file).read():
-        # If the file contains uvicorn.run, just run it
-        os.system(cmd)
-    else:
-        # Otherwise, use uvicorn directly
-        module_name = main_file.replace(".py", "").replace("/", ".")
-        os.system(f"uvicorn {module_name}:app --host 0.0.0.0 --port 12000 --reload")
+    # Run the coffee web app
+    os.system("python coffee_web_app.py")
     
     return True
 

@@ -251,6 +251,9 @@ class User(UUIDMixin, TimestampMixin, table=True):
     notification_preferences: Dict[str, bool] = Field(default_factory=dict, sa_column=Column(JSON))
     ui_preferences: Dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
     
+    # Relationships
+    ai_tool_chains: List["AIToolChain"] = Relationship(back_populates="user")
+    
     __table_args__ = (
         Index("idx_user_email", "email"),
         Index("idx_user_tenant", "tenant_id"),
@@ -1100,6 +1103,144 @@ class LeadUpdate(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     status: Optional[str] = None
+
+
+# ==================== AI TOOL CHAIN MODELS ====================
+
+class AIToolChain(SQLModel, table=True):
+    """
+    AI Tool Chain Model
+    
+    Represents a chain of AI tools configured for a specific user/business.
+    Created from consultation analysis to automate business processes.
+    """
+    __tablename__ = "ai_tool_chains"
+    
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID = Field(foreign_key="users.id", index=True)
+    name: str = Field(max_length=200)
+    description: Optional[str] = Field(default=None, sa_column=Column(Text))
+    business_type: Optional[str] = Field(default=None, max_length=100)
+    
+    # Chain configuration
+    is_active: bool = Field(default=True)
+    auto_execute: bool = Field(default=False)
+    execution_schedule: Optional[str] = Field(default=None)  # Cron expression
+    
+    # Metadata
+    created_from_consultation: bool = Field(default=False)
+    consultation_id: Optional[UUID] = Field(default=None)
+    total_steps: int = Field(default=0)
+    
+    # Timestamps
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    last_executed_at: Optional[datetime] = Field(default=None)
+    
+    # Relationships
+    user: "User" = Relationship(back_populates="ai_tool_chains")
+    steps: List["AIToolChainStep"] = Relationship(back_populates="tool_chain")
+    
+    # Indexes
+    __table_args__ = (
+        Index("idx_ai_tool_chains_user_active", "user_id", "is_active"),
+        Index("idx_ai_tool_chains_business_type", "business_type"),
+    )
+
+
+class AIToolChainStep(SQLModel, table=True):
+    """
+    AI Tool Chain Step Model
+    
+    Represents individual steps/tools within an AI tool chain.
+    """
+    __tablename__ = "ai_tool_chain_steps"
+    
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tool_chain_id: UUID = Field(foreign_key="ai_tool_chains.id", index=True)
+    
+    # Step configuration
+    step_order: int = Field(ge=1)
+    tool_name: str = Field(max_length=100)
+    tool_config: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    
+    # Execution settings
+    is_enabled: bool = Field(default=True)
+    auto_execute: bool = Field(default=False)
+    depends_on_step: Optional[UUID] = Field(default=None)  # Previous step dependency
+    
+    # Execution tracking
+    execution_count: int = Field(default=0)
+    last_executed_at: Optional[datetime] = Field(default=None)
+    last_execution_status: Optional[str] = Field(default=None)
+    last_execution_result: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    
+    # Timestamps
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Relationships
+    tool_chain: AIToolChain = Relationship(back_populates="steps")
+    
+    # Indexes
+    __table_args__ = (
+        Index("idx_ai_tool_chain_steps_chain_order", "tool_chain_id", "step_order"),
+        Index("idx_ai_tool_chain_steps_tool", "tool_name"),
+        UniqueConstraint("tool_chain_id", "step_order", name="uq_chain_step_order"),
+    )
+
+
+# Update User model to include AI tool chains relationship
+# This would be added to the User class if it doesn't already exist
+# user.ai_tool_chains: List[AIToolChain] = Relationship(back_populates="user")
+
+
+# ==================== CONSULTATION MODELS ====================
+
+class ConsultationAnalysis(SQLModel, table=True):
+    """
+    Consultation Analysis Model
+    
+    Stores the results of AI consultation analysis for business automation.
+    """
+    __tablename__ = "consultation_analyses"
+    
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID = Field(foreign_key="users.id", index=True)
+    temporary_phone_assignment_id: Optional[UUID] = Field(
+        foreign_key="temporary_phone_assignments.id", default=None
+    )
+    
+    # Analysis results
+    business_type: str = Field(max_length=100)
+    business_type_confidence: float = Field(ge=0.0, le=1.0)
+    client_needs: List[Dict[str, Any]] = Field(default=[], sa_column=Column(JSON))
+    recommended_tools: List[Dict[str, Any]] = Field(default=[], sa_column=Column(JSON))
+    
+    # Consultation data
+    conversation_transcript: Optional[str] = Field(default=None, sa_column=Column(Text))
+    conversation_summary: Optional[str] = Field(default=None, sa_column=Column(Text))
+    call_duration_minutes: Optional[int] = Field(default=None)
+    
+    # Pricing and recommendations
+    recommended_pricing: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    automation_workflow: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    
+    # Status tracking
+    subscription_offered: bool = Field(default=False)
+    subscription_created: bool = Field(default=False)
+    tool_chain_created: bool = Field(default=False)
+    
+    # Timestamps
+    analyzed_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Indexes
+    __table_args__ = (
+        Index("idx_consultation_analyses_user", "user_id"),
+        Index("idx_consultation_analyses_business_type", "business_type"),
+        Index("idx_consultation_analyses_date", "analyzed_at"),
+    )
 
 
 # Validation and Business Logic

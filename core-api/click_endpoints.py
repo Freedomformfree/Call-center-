@@ -13,13 +13,13 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 import structlog
 
-from .click_payment_service import (
+from click_payment_service import (
     ClickPaymentService, 
     ClickPaymentRequest, 
     ClickPaymentResponse,
     ClickSubscriptionManager
 )
-from .config import get_api_keys
+from config import get_api_keys
 
 logger = structlog.get_logger(__name__)
 

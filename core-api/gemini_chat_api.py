@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from uuid import UUID
 import structlog
 
-from gemini_chat_service import gemini_chat_service, GeminiChatResponse
+from gemini_chat_service import get_gemini_chat_service, GeminiChatResponse
 from gemini_response_parser import gemini_response_parser, ParsedResponse
 from ai_tools_service import get_ai_tools_service, AIToolsService
 from auth import get_current_user
@@ -90,10 +90,11 @@ async def start_chat_session(
     """
     try:
         # Initialize the service if not already done
-        if not await gemini_chat_service.initialize():
+        service = get_gemini_chat_service()
+        if not await service.initialize():
             raise HTTPException(status_code=503, detail="Gemini chat service not available")
         
-        session_id = await gemini_chat_service.start_chat_session(
+        session_id = await service.start_chat_session(
             user_id=current_user.id,
             context=request.context
         )
@@ -130,7 +131,8 @@ async def send_message(
     """
     try:
         # Send message to Gemini
-        response = await gemini_chat_service.send_message(
+        service = get_gemini_chat_service()
+        response = await service.send_message(
             session_id=request.session_id,
             user_message=request.message,
             user_id=current_user.id
@@ -216,7 +218,8 @@ async def get_chat_history(
     excluding system messages.
     """
     try:
-        history = await gemini_chat_service.get_session_history(session_id)
+        service = get_gemini_chat_service()
+        history = await service.get_session_history(session_id)
         
         logger.info("Retrieved chat history", 
                    user_id=str(current_user.id),
@@ -249,7 +252,8 @@ async def clear_chat_session(
     Removes all messages and data associated with the specified chat session.
     """
     try:
-        success = await gemini_chat_service.clear_session(session_id)
+        service = get_gemini_chat_service()
+        success = await service.clear_session(session_id)
         
         if success:
             logger.info("Cleared chat session", 
@@ -280,7 +284,8 @@ async def get_active_sessions(
     Returns a list of all active chat session IDs for monitoring purposes.
     """
     try:
-        sessions = await gemini_chat_service.get_active_sessions()
+        service = get_gemini_chat_service()
+        sessions = await service.get_active_sessions()
         
         logger.info("Retrieved active sessions", 
                    user_id=str(current_user.id),
@@ -356,7 +361,8 @@ async def health_check():
     Verifies that the Gemini chat service is properly initialized and operational.
     """
     try:
-        is_initialized = await gemini_chat_service.initialize()
+        service = get_gemini_chat_service()
+        is_initialized = await service.initialize()
         
         return {
             "success": True,

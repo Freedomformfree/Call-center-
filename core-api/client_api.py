@@ -357,6 +357,101 @@ async def submit_consultation_result(
         raise HTTPException(status_code=500, detail="Processing failed")
 
 
+@client_router.post("/process-consultation-completion")
+async def process_consultation_completion(
+    call_id: str,
+    conversation_transcript: str,
+    call_duration_minutes: int,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Process completed consultation call with AI analysis.
+    
+    Analyzes the consultation conversation and creates personalized
+    tool recommendations and subscription offers.
+    """
+    try:
+        # Import consultation analysis service
+        from consultation_analysis_service import get_consultation_analysis_service
+        analysis_service = get_consultation_analysis_service()
+        
+        if not analysis_service:
+            raise HTTPException(status_code=503, detail="Analysis service unavailable")
+        
+        # Analyze the consultation
+        analysis_result = await analysis_service.analyze_consultation(
+            user_id=str(current_user.id),
+            conversation_transcript=conversation_transcript,
+            call_duration_minutes=call_duration_minutes
+        )
+        
+        if analysis_result['success']:
+            return {
+                "success": True,
+                "analysis": analysis_result['analysis'],
+                "subscription_offer": {
+                    "monthly_price": analysis_result['analysis']['pricing']['monthly_price'],
+                    "recommended_tools": analysis_result['analysis']['recommended_tools'],
+                    "business_type": analysis_result['analysis']['business_type']['name'],
+                    "automation_workflow": analysis_result['analysis']['automation_workflow']
+                },
+                "next_steps": [
+                    "Review the recommended AI tools for your business",
+                    "Subscribe to enable automated workflows",
+                    "Configure tool integrations",
+                    "Start automating your business processes"
+                ]
+            }
+        else:
+            raise HTTPException(status_code=400, detail=analysis_result.get('error', 'Analysis failed'))
+            
+    except Exception as e:
+        logger.error("Consultation completion processing failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Processing failed")
+
+
+@client_router.post("/create-ai-tool-chain")
+async def create_ai_tool_chain(
+    business_type: str,
+    recommended_tools: List[Dict[str, Any]],
+    chain_name: str = None,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create an AI tool chain from consultation recommendations.
+    
+    Creates a customized automation workflow based on the
+    consultation analysis and recommended tools.
+    """
+    try:
+        from consultation_analysis_service import get_consultation_analysis_service
+        analysis_service = get_consultation_analysis_service()
+        
+        if not analysis_service:
+            raise HTTPException(status_code=503, detail="Analysis service unavailable")
+        
+        # Create the tool chain
+        result = await analysis_service.create_ai_tool_chain(
+            user_id=str(current_user.id),
+            business_type=business_type,
+            recommended_tools=recommended_tools,
+            chain_name=chain_name or f"{business_type.title()} Automation Chain"
+        )
+        
+        if result['success']:
+            return {
+                "success": True,
+                "tool_chain": result['tool_chain'],
+                "message": "AI tool chain created successfully"
+            }
+        else:
+            raise HTTPException(status_code=400, detail=result.get('error', 'Tool chain creation failed'))
+            
+    except Exception as e:
+        logger.error("AI tool chain creation failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Creation failed")
+
+
 @client_router.post("/create-subscription", response_model=SubscriptionResponse)
 async def create_subscription(
     request: CreateSubscriptionRequest,

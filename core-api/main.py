@@ -266,12 +266,18 @@ app.include_router(gemini_chat_router)
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Redirect root to beautiful site
+# Serve frontend at root
 @app.get("/")
-async def redirect_to_beautiful_site():
-    """Redirect root URL to beautiful site"""
+async def serve_frontend():
+    """Serve the main frontend application"""
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/static/beautiful-index.html")
+    return RedirectResponse(url="/static/index.html")
+
+@app.get("/dashboard")
+async def serve_dashboard():
+    """Serve the dashboard application with AI tools and Gemini chat"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/static/dashboard.html")
 
 # Business Tools API Endpoints
 @app.post("/api/v1/tools/execute")

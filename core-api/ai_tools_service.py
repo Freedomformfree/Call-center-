@@ -510,7 +510,7 @@ class AIToolsService:
     async def _execute_click_action(self, config: Dict[str, str], action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute Click API actions."""
         try:
-            from .click_payment_service import ClickPaymentService, ClickSubscriptionManager
+            from click_payment_service import ClickPaymentService, ClickSubscriptionManager
             from datetime import datetime
             from uuid import UUID
             

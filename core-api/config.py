@@ -234,3 +234,16 @@ def get_settings() -> CoreAPIConfig:
     if _settings is None:
         _settings = CoreAPIConfig()
     return _settings
+
+
+class APIKeys:
+    """API Keys configuration."""
+    def __init__(self):
+        self.click_service_id = os.getenv("CLICK_SERVICE_ID", "")
+        self.click_secret_key = os.getenv("CLICK_SECRET_KEY", "")
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+
+
+def get_api_keys() -> APIKeys:
+    """Get API keys configuration."""
+    return APIKeys()

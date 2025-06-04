@@ -23,7 +23,7 @@ from sqlmodel import Session, select
 
 from database import get_db_manager
 from models import User, AIToolConfig, ConversationContext
-from config.api_keys import api_keys
+from config import get_api_keys
 
 logger = structlog.get_logger(__name__)
 
@@ -81,6 +81,7 @@ class GeminiChatService:
         self.engine = self.db_manager.engine
         
         # Gemini configuration
+        api_keys = get_api_keys()
         self.api_key = api_keys.gemini_api_key
         self.model_name = "gemini-1.5-pro"
         self.temperature = 0.7
@@ -542,5 +543,12 @@ Always provide clear, technical solutions while being accessible to non-technica
         return list(self.chat_sessions.keys())
 
 
-# Global service instance
-gemini_chat_service = GeminiChatService()
+# Global service instance - lazy initialization
+_gemini_chat_service = None
+
+def get_gemini_chat_service() -> GeminiChatService:
+    """Get global gemini chat service instance."""
+    global _gemini_chat_service
+    if _gemini_chat_service is None:
+        _gemini_chat_service = GeminiChatService()
+    return _gemini_chat_service

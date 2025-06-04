@@ -11,7 +11,7 @@ This service provides AI tools for automating various business tasks including:
 - Telegram Bot API for notifications
 - Zoom API for meeting management
 - Microsoft Graph API for Office 365 integration
-- Stripe API for payment processing
+- Click API for payment processing (Uzbekistan)
 """
 
 import asyncio
@@ -88,11 +88,11 @@ class AIToolsService:
                 "scopes": ["https://graph.microsoft.com/.default"],
                 "setup_required": ["client_id", "client_secret", "tenant_id"]
             },
-            "stripe": {
-                "name": "Stripe API",
-                "description": "Process payments and manage subscriptions",
+            "click": {
+                "name": "Click API",
+                "description": "Process payments for Uzbekistan market",
                 "scopes": ["payments"],
-                "setup_required": ["secret_key", "publishable_key"]
+                "setup_required": ["service_id", "secret_key"]
             },
             "hubspot": {
                 "name": "HubSpot API",
@@ -252,8 +252,8 @@ class AIToolsService:
                     return await self._execute_zoom_action(config.config, action, parameters)
                 elif tool_name == "microsoft":
                     return await self._execute_microsoft_action(config.config, action, parameters)
-                elif tool_name == "stripe":
-                    return await self._execute_stripe_action(config.config, action, parameters)
+                elif tool_name == "click":
+                    return await self._execute_click_action(config.config, action, parameters)
                 elif tool_name == "hubspot":
                     return await self._execute_hubspot_action(config.config, action, parameters)
                 elif tool_name == "salesforce":
@@ -499,29 +499,84 @@ class AIToolsService:
         
         return {"success": False, "error": f"Unknown Microsoft action: {action}"}
     
-    async def _execute_stripe_action(self, config: Dict[str, str], action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute Stripe API actions."""
-        if action == "create_payment_intent":
-            required = ["amount", "currency"]
-            missing = [field for field in required if field not in parameters]
-            if missing:
-                return {"success": False, "error": f"Missing fields: {', '.join(missing)}"}
+    async def _execute_click_action(self, config: Dict[str, str], action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute Click API actions."""
+        try:
+            from .click_payment_service import ClickPaymentService, ClickSubscriptionManager
+            from datetime import datetime
+            from uuid import UUID
             
-            # TODO: Implement actual Stripe API call
-            logger.info("Stripe create payment intent action", amount=parameters["amount"])
+            service_id = int(config.get("service_id", "0"))
+            secret_key = config.get("secret_key", "")
             
-            return {
-                "success": True,
-                "message": "Payment intent created successfully",
-                "action": "create_payment_intent",
-                "details": {
-                    "amount": parameters["amount"],
-                    "currency": parameters["currency"],
-                    "payment_intent_id": "mock_stripe_id_123"
+            if not service_id or not secret_key:
+                return {"success": False, "error": "Click API not configured"}
+            
+            click_service = ClickPaymentService(service_id, secret_key)
+            
+            if action == "create_payment":
+                required = ["amount"]
+                missing = [field for field in required if field not in parameters]
+                if missing:
+                    return {"success": False, "error": f"Missing fields: {', '.join(missing)}"}
+                
+                amount = parameters["amount"]
+                merchant_trans_id = parameters.get("merchant_trans_id", f"ORDER_{int(datetime.now().timestamp())}")
+                description = parameters.get("description", "VoiceConnect Payment")
+                return_url = parameters.get("return_url", "https://your-domain.com/payment/success")
+                
+                payment_url = click_service.create_payment_url(
+                    merchant_trans_id=merchant_trans_id,
+                    amount=amount,
+                    return_url=return_url,
+                    description=description
+                )
+                
+                logger.info("Click payment created", merchant_trans_id=merchant_trans_id, amount=amount)
+                
+                return {
+                    "success": True,
+                    "message": "Payment URL created successfully",
+                    "action": "create_payment",
+                    "details": {
+                        "payment_url": payment_url,
+                        "merchant_trans_id": merchant_trans_id,
+                        "amount": amount,
+                        "currency": "UZS"
+                    }
                 }
-            }
+            
+            elif action == "create_subscription":
+                required = ["tenant_id", "plan", "amount"]
+                missing = [field for field in required if field not in parameters]
+                if missing:
+                    return {"success": False, "error": f"Missing fields: {', '.join(missing)}"}
+                
+                tenant_id = UUID(parameters["tenant_id"])
+                plan = parameters["plan"]
+                amount = parameters["amount"]
+                
+                subscription_manager = ClickSubscriptionManager(click_service)
+                result = await subscription_manager.create_subscription_payment(
+                    tenant_id=tenant_id,
+                    plan=plan,
+                    amount=amount
+                )
+                
+                logger.info("Click subscription payment created", tenant_id=tenant_id, plan=plan)
+                
+                return {
+                    "success": True,
+                    "message": "Subscription payment created successfully",
+                    "action": "create_subscription",
+                    "details": result
+                }
+                
+        except Exception as e:
+            logger.error("Click action failed", action=action, error=str(e))
+            return {"success": False, "error": str(e)}
         
-        return {"success": False, "error": f"Unknown Stripe action: {action}"}
+        return {"success": False, "error": f"Unknown Click action: {action}"}
     
     async def _execute_hubspot_action(self, config: Dict[str, str], action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute HubSpot API actions."""

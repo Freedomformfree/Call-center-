@@ -16,11 +16,11 @@
       "from_email": "noreply@yourcompany.com",
       "description": "SendGrid API for email notifications"
     },
-    "stripe": {
-      "publishable_key": "YOUR_STRIPE_PUBLISHABLE_KEY",
-      "secret_key": "YOUR_STRIPE_SECRET_KEY",
-      "webhook_secret": "YOUR_STRIPE_WEBHOOK_SECRET",
-      "description": "Stripe API for payment processing"
+    "click": {
+      "service_id": "YOUR_CLICK_SERVICE_ID",
+      "secret_key": "YOUR_CLICK_SECRET_KEY",
+      "merchant_id": "YOUR_CLICK_MERCHANT_ID",
+      "description": "Click API for payment processing in Uzbekistan"
     },
     "google_cloud": {
       "project_id": "YOUR_GCP_PROJECT_ID",

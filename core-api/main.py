@@ -255,6 +255,10 @@ app.include_router(call_webhook_router)
 app.include_router(gsm_status_router)
 app.include_router(get_telegram_router(), prefix="/api/v1")
 
+# Include Click payment router
+from click_endpoints import router as click_router
+app.include_router(click_router)
+
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

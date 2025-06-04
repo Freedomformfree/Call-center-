@@ -13,7 +13,7 @@ passlib[bcrypt]==1.7.4
 PyJWT==2.8.0
 httpx==0.25.2
 aiofiles==23.2.1
-stripe==7.8.0
+# stripe==7.8.0  # Replaced with Click API for Uzbekistan market
 requests==2.31.0
 pandas==2.1.4
 numpy==1.24.3

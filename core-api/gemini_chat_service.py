@@ -273,10 +273,19 @@ Always provide clear, technical solutions while being accessible to non-technica
         ]
         
         # Create Gemini model for this session
+        tools = self._get_function_declarations()
+        tool_config = genai.types.ToolConfig(
+            function_calling_config=genai.types.FunctionCallingConfig(
+                mode=genai.types.FunctionCallingConfig.Mode.AUTO,
+                allowed_function_names=[tool.name for tool in tools]
+            )
+        )
         self.active_models[session_id] = genai.GenerativeModel(
             model_name=self.model_name,
             safety_settings=self.safety_settings,
-            system_instruction=system_prompt
+            system_instruction=system_prompt,
+            tools=tools,
+            tool_config=tool_config
         )
         
         logger.info("Started chat session", session_id=session_id, user_id=str(user_id), context=context)
@@ -324,28 +333,63 @@ Always provide clear, technical solutions while being accessible to non-technica
                 )
             )
             
-            if not response or not response.text:
+            if not response:
                 raise Exception("Empty response from Gemini")
-            
-            response_text = response.text.strip()
-            
-            # Parse tool actions from response
-            tool_actions = await self._parse_tool_actions(user_message, response_text, user_id)
-            
+
+            response_text = ""
+            tool_actions = []
+
+            # Check for function calls
+            function_call_response = None
+            if response.candidates[0].content.parts[0].function_call:
+                function_call = response.candidates[0].content.parts[0].function_call
+                logger.info("Function call requested by model",
+                            function_name=function_call.name,
+                            args=dict(function_call.args))
+                # TODO: Execute the function and send the result back to the model
+                # For now, just return a generic message and populate tool_actions
+                response_text = f"Function call {function_call.name} received. Executing..."
+                tool_actions = [ToolAction(
+                    tool_name=function_call.name.split("_")[0], # Extract tool name
+                    action=function_call.name.split("_")[1] if "_" in function_call.name else function_call.name, # Extract action
+                    parameters=dict(function_call.args),
+                    confidence=1.0 # Confidence is high as it's a direct function call
+                )]
+                function_call_response = {
+                    "name": function_call.name,
+                    "args": dict(function_call.args)
+                }
+            elif response.text:
+                response_text = response.text.strip()
+                # Parse tool actions from response if no function call
+                tool_actions = await self._parse_tool_actions(user_message, response_text, user_id)
+            else:
+                # If there's no text and no function call, it's an issue.
+                logger.warning("Gemini response has no text and no function call.", response=response)
+                response_text = "No response text received." # Ensure response_text is not None
+
             # Add assistant response to session
+            assistant_metadata = {
+                "user_id": str(user_id),
+                "tool_actions": [action.__dict__ for action in tool_actions]
+            }
+            if function_call_response:
+                assistant_metadata["function_call"] = function_call_response
+
+            # Add Gemini response details if available
+            if response.candidates:
+                candidate = response.candidates[0]
+                assistant_metadata["gemini_response"] = {
+                    "finish_reason": candidate.finish_reason.name if candidate.finish_reason else None,
+                    "safety_ratings": [rating.__dict__ for rating in candidate.safety_ratings] if candidate.safety_ratings else []
+                }
+
             assistant_msg = ChatMessage(
                 id=str(uuid4()),
                 role=ChatRole.ASSISTANT,
                 content=response_text,
                 timestamp=datetime.utcnow(),
-                metadata={
-                    "user_id": str(user_id),
-                    "tool_actions": [action.__dict__ for action in tool_actions],
-                    "gemini_response": {
-                        "finish_reason": response.candidates[0].finish_reason.name if response.candidates else None,
-                        "safety_ratings": [rating.__dict__ for rating in response.candidates[0].safety_ratings] if response.candidates else []
-                    }
-                }
+                metadata=assistant_metadata
             )
             self.chat_sessions[session_id].append(assistant_msg)
             
@@ -412,6 +456,10 @@ Always provide clear, technical solutions while being accessible to non-technica
         """
         tool_actions = []
         
+        # If AI response is empty or indicates a function call was handled, don't parse for JSON actions
+        if not ai_response or "Function call" in ai_response:
+            return tool_actions
+
         try:
             # First, check if AI response contains JSON tool actions
             if "```json" in ai_response:
@@ -430,7 +478,8 @@ Always provide clear, technical solutions while being accessible to non-technica
                                     confidence=action_data.get("confidence", 0.8)
                                 ))
                     except json.JSONDecodeError:
-                        pass
+                        logger.warning("Failed to decode JSON from AI response", json_content=json_content)
+                        pass # Fall through to pattern matching if JSON parsing fails
             
             # If no JSON actions found, use pattern matching on user message
             if not tool_actions:
@@ -439,7 +488,7 @@ Always provide clear, technical solutions while being accessible to non-technica
             return tool_actions
             
         except Exception as e:
-            logger.error("Failed to parse tool actions", error=str(e))
+            logger.error("Failed to parse tool actions", error=str(e), user_message=user_message, ai_response=ai_response)
             return []
     
     async def _pattern_match_actions(self, user_message: str, user_id: UUID) -> List[ToolAction]:
@@ -488,7 +537,7 @@ Always provide clear, technical solutions while being accessible to non-technica
         
         # Email extraction
         if "to" in required_params:
-            email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            email_pattern = r'\b[A-Za-z0-TldZ0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
             emails = re.findall(email_pattern, message)
             if emails:
                 parameters["to"] = emails[0]
@@ -541,6 +590,35 @@ Always provide clear, technical solutions while being accessible to non-technica
     async def get_active_sessions(self) -> List[str]:
         """Get list of active session IDs."""
         return list(self.chat_sessions.keys())
+
+    def _get_function_declarations(self) -> List[genai.types.FunctionDeclaration]:
+        """Build function declarations from tool patterns."""
+        function_declarations = []
+        for tool_name, patterns in self.tool_patterns.items():
+            for pattern_info in patterns:
+                function_name = f"{tool_name}_{pattern_info['action']}"
+                description = f"Performs {pattern_info['action']} for {tool_name}"
+
+                # Define properties based on required_params
+                properties = {}
+                for param in pattern_info["required_params"]:
+                    properties[param] = genai.types.Schema(
+                        type=genai.types.Type.STRING, # Assuming all params are strings for now
+                        description=f"Parameter for {param}"
+                    )
+
+                function_declarations.append(
+                    genai.types.FunctionDeclaration(
+                        name=function_name,
+                        description=description,
+                        parameters=genai.types.Schema(
+                            type=genai.types.Type.OBJECT,
+                            properties=properties,
+                            required=pattern_info["required_params"]
+                        )
+                    )
+                )
+        return function_declarations
 
 
 # Global service instance - lazy initialization
